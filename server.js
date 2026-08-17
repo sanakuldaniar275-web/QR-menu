@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DATABASE_URL = process.env.DATABASE_URL || '';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
-const pool = DATABASE_URL ? new Pool({ connectionString: DATABASE_URL, ssl: { rejectUnauthorized: false } }) : null;
+const pool = DATABASE_URL ? new Pool({ connectionString: DATABASE_URL }) : null;
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(__dirname));
@@ -98,7 +98,7 @@ app.get('/api/menu/:slug', async (req, res) => {
     if (!r.rowCount) return res.status(404).json({ error: 'Restaurant not found' });
     const restaurant = r.rows[0];
     const categories = await pool.query('SELECT id,name FROM categories WHERE restaurant_id=$1 ORDER BY sort_order,id', [restaurant.id]);
-    const dishes = await pool.query(`SELECT d.id,d.name,d.description,d.price,d.image_url,c.name AS category FROM dishes d LEFT JOIN categories c ON c.id=d.category_id WHERE d.restaurant_id=$1 AND d.active=TRUE ORDER BY d.sort_order,d.id`, [restaurant.id]);
+    const dishes = await pool.query('SELECT d.id,d.name,d.description,d.price,d.image_url,c.name AS category FROM dishes d LEFT JOIN categories c ON c.id=d.category_id WHERE d.restaurant_id=$1 AND d.active=TRUE ORDER BY d.sort_order,d.id', [restaurant.id]);
     res.json({ restaurant, categories: categories.rows.map(c => c.name), dishes: dishes.rows });
   } catch (err) {
     console.error(err);
@@ -119,6 +119,15 @@ app.get('/api/admin/restaurants', adminAuth, async (_req, res) => {
   res.json(result.rows);
 });
 
+app.get('/api/admin/restaurants/:id/menu', adminAuth, async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'DATABASE_URL is not configured' });
+  const restaurant = await pool.query('SELECT id,name,slug,subtitle,phone,active FROM restaurants WHERE id=$1', [req.params.id]);
+  if (!restaurant.rowCount) return res.status(404).json({ error: 'Restaurant not found' });
+  const categories = await pool.query('SELECT id,name,sort_order FROM categories WHERE restaurant_id=$1 ORDER BY sort_order,id', [req.params.id]);
+  const dishes = await pool.query('SELECT id,category_id,name,description,price,image_url,active,sort_order FROM dishes WHERE restaurant_id=$1 ORDER BY sort_order,id', [req.params.id]);
+  res.json({ restaurant: restaurant.rows[0], categories: categories.rows, dishes: dishes.rows });
+});
+
 app.post('/api/admin/restaurants', adminAuth, async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'DATABASE_URL is not configured' });
   const { name, slug, subtitle = '', phone = '' } = req.body || {};
@@ -128,7 +137,8 @@ app.post('/api/admin/restaurants', adminAuth, async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (err) {
     if (err.code === '23505') return res.status(409).json({ error: 'Slug already exists' });
-    throw err;
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -136,22 +146,33 @@ app.post('/api/admin/restaurants/:id/categories', adminAuth, async (req, res) =>
   if (!pool) return res.status(503).json({ error: 'DATABASE_URL is not configured' });
   const name = String(req.body?.name || '').trim();
   if (!name) return res.status(400).json({ error: 'Category name is required' });
-  const result = await pool.query('INSERT INTO categories(restaurant_id,name,sort_order) VALUES($1,$2,(SELECT COALESCE(MAX(sort_order),-1)+1 FROM categories WHERE restaurant_id=$1)) RETURNING *', [req.params.id, name]);
-  res.status(201).json(result.rows[0]);
+  try {
+    const result = await pool.query('INSERT INTO categories(restaurant_id,name,sort_order) VALUES($1,$2,(SELECT COALESCE(MAX(sort_order),-1)+1 FROM categories WHERE restaurant_id=$1)) RETURNING *', [req.params.id, name]);
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    if (err.code === '23505') return res.status(409).json({ error: 'Category already exists' });
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 app.post('/api/admin/restaurants/:id/dishes', adminAuth, async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'DATABASE_URL is not configured' });
   const { category_id, name, description = '', price, image_url = '' } = req.body || {};
   if (!name || !Number.isInteger(Number(price)) || Number(price) < 0) return res.status(400).json({ error: 'Invalid dish data' });
-  const result = await pool.query('INSERT INTO dishes(restaurant_id,category_id,name,description,price,image_url,sort_order) VALUES($1,$2,$3,$4,$5,$6,(SELECT COALESCE(MAX(sort_order),-1)+1 FROM dishes WHERE restaurant_id=$1)) RETURNING *', [req.params.id, category_id || null, name, description, Number(price), image_url]);
-  res.status(201).json(result.rows[0]);
+  try {
+    const result = await pool.query('INSERT INTO dishes(restaurant_id,category_id,name,description,price,image_url,sort_order) VALUES($1,$2,$3,$4,$5,$6,(SELECT COALESCE(MAX(sort_order),-1)+1 FROM dishes WHERE restaurant_id=$1)) RETURNING *', [req.params.id, category_id || null, name, description, Number(price), image_url]);
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 app.patch('/api/admin/dishes/:id', adminAuth, async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'DATABASE_URL is not configured' });
   const { name, description, price, image_url, active, category_id } = req.body || {};
-  const result = await pool.query(`UPDATE dishes SET name=COALESCE($2,name),description=COALESCE($3,description),price=COALESCE($4,price),image_url=COALESCE($5,image_url),active=COALESCE($6,active),category_id=COALESCE($7,category_id) WHERE id=$1 RETURNING *`, [req.params.id, name ?? null, description ?? null, price ?? null, image_url ?? null, active ?? null, category_id ?? null]);
+  const result = await pool.query('UPDATE dishes SET name=COALESCE($2,name),description=COALESCE($3,description),price=COALESCE($4,price),image_url=COALESCE($5,image_url),active=COALESCE($6,active),category_id=COALESCE($7,category_id) WHERE id=$1 RETURNING *', [req.params.id, name ?? null, description ?? null, price ?? null, image_url ?? null, active ?? null, category_id ?? null]);
   if (!result.rowCount) return res.status(404).json({ error: 'Dish not found' });
   res.json(result.rows[0]);
 });

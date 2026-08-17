@@ -3,24 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR Menu — Demo</title>
+  <meta name="theme-color" content="#18392b">
+  <title>QR Menu</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="hero">
-    <div class="hero__top"><span class="logo">QR MENU</span><button class="lang" type="button">RU</button></div>
-    <p class="eyebrow">Демонстрационное заведение</p>
-    <h1>Добро пожаловать</h1>
+    <div class="hero__top"><span class="logo">QR MENU</span><span class="badge">RU</span></div>
+    <p id="restaurantSubtitle" class="eyebrow">Загрузка меню…</p>
+    <h1 id="restaurantName">QR Menu</h1>
     <p>Выберите категорию и найдите любимое блюдо.</p>
   </header>
 
   <main>
     <div class="search-wrap"><input id="search" type="search" placeholder="Поиск по меню…" aria-label="Поиск по меню"></div>
     <nav id="categories" class="categories" aria-label="Категории"></nav>
-    <section id="menu" class="menu"></section>
+    <section id="menu" class="menu" aria-live="polite"></section>
   </main>
 
   <footer><strong>QR Menu</strong><span>Цифровое меню для кафе и ресторанов</span></footer>
-  <script src="app.js"></script>
+  <script src="/app.js"></script>
 </body>
 </html>

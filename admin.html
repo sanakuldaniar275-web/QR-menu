@@ -29,6 +29,35 @@
       <h2>Заведения</h2>
       <div id="restaurants">Загрузка…</div>
     </section>
+
+    <section id="editor" class="panel" hidden>
+      <div class="admin-head">
+        <div><div class="muted">Редактирование меню</div><h2 id="editorTitle">Заведение</h2></div>
+        <div class="restaurant-actions">
+          <a id="menuLink" class="secondary" target="_blank">Открыть меню</a>
+          <a id="qrLink" class="secondary" target="_blank">Открыть QR</a>
+        </div>
+      </div>
+
+      <h3>Добавить категорию</h3>
+      <form id="categoryForm" class="form-grid cols">
+        <input name="name" placeholder="Например: Салаты" required>
+        <button class="primary" type="submit">Добавить категорию</button>
+      </form>
+
+      <h3>Добавить блюдо</h3>
+      <form id="dishForm" class="form-grid cols">
+        <select name="category_id" id="dishCategory" required></select>
+        <input name="name" placeholder="Название блюда" required>
+        <input name="price" type="number" min="0" step="1" placeholder="Цена, ₸" required>
+        <input name="image_url" placeholder="Ссылка на фото (пока необязательно)">
+        <textarea name="description" placeholder="Описание блюда"></textarea>
+        <button class="primary" type="submit">Добавить блюдо</button>
+      </form>
+
+      <h3>Текущее меню</h3>
+      <div id="menuEditor"></div>
+    </section>
   </main>
   <script src="/admin.js"></script>
 </body>

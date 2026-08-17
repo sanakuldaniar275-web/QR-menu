@@ -9,17 +9,20 @@
 <body>
   <main class="admin-shell">
     <div class="admin-head">
-      <div><div class="muted">QR MENU</div><h1>Админка</h1></div>
+      <div><div class="muted">QR MENU PLATFORM</div><h1>Админка</h1></div>
       <a class="secondary" href="/r/demo" target="_blank">Открыть демо</a>
     </div>
 
     <section class="panel">
       <h2>Новое заведение</h2>
+      <p class="muted">Создай клиента — система сразу даст ему отдельную ссылку меню и QR-код.</p>
       <form id="restaurantForm" class="form-grid cols">
         <input name="name" placeholder="Название заведения" required>
-        <input name="slug" placeholder="Ссылка, например arman-cafe" pattern="[a-z0-9-]+" required>
-        <input name="subtitle" placeholder="Короткое описание">
-        <input name="phone" placeholder="Телефон / WhatsApp">
+        <input name="slug" placeholder="Ссылка: arman-cafe" pattern="[a-z0-9-]+" required>
+        <input name="subtitle" placeholder="Например: Семейный ресторан • Шымкент">
+        <input name="phone" placeholder="WhatsApp: 77001234567">
+        <input name="address" placeholder="Адрес">
+        <input name="service" placeholder="Например: Обслуживание 10%">
         <button class="primary" type="submit">Создать заведение</button>
       </form>
       <div id="status" class="status muted"></div>
@@ -35,7 +38,7 @@
         <div><div class="muted">Редактирование меню</div><h2 id="editorTitle">Заведение</h2></div>
         <div class="restaurant-actions">
           <a id="menuLink" class="secondary" target="_blank">Открыть меню</a>
-          <a id="qrLink" class="secondary" target="_blank">Открыть QR</a>
+          <a id="qrLink" class="secondary" target="_blank">QR-код</a>
         </div>
       </div>
 
@@ -50,7 +53,9 @@
         <select name="category_id" id="dishCategory" required></select>
         <input name="name" placeholder="Название блюда" required>
         <input name="price" type="number" min="0" step="1" placeholder="Цена, ₸" required>
-        <input name="image_url" placeholder="Ссылка на фото (пока необязательно)">
+        <input name="image_url" placeholder="Ссылка на фото (необязательно)">
+        <input name="emoji" placeholder="Иконка, например 🍕">
+        <input name="badge" placeholder="Метка: Хит / Новинка">
         <textarea name="description" placeholder="Описание блюда"></textarea>
         <button class="primary" type="submit">Добавить блюдо</button>
       </form>

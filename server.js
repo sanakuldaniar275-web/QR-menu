@@ -15,14 +15,7 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.static(__dirname, { maxAge: '1h' }));
 
 const demo = {
-  restaurant: {
-    name: 'SANAQ CAFE',
-    slug: 'demo',
-    subtitle: 'Современная кухня • Шымкент',
-    phone: '87000000000',
-    address: 'Демонстрационное заведение',
-    service: 'Обслуживание 10%'
-  },
+  restaurant: { name: 'SANAQ CAFE', slug: 'demo', subtitle: 'Современная кухня • Шымкент', phone: '87000000000', address: 'Демонстрационное заведение', service: 'Обслуживание 10%' },
   categories: ['Завтраки','Салаты','Супы','Горячее','Пицца','Десерты','Напитки'],
   dishes: [
     {category:'Завтраки',name:'Сырники',description:'Нежные сырники, сметана и ягодный соус',price:2200,emoji:'🥞',badge:'Хит'},
@@ -39,6 +32,15 @@ const demo = {
     {category:'Напитки',name:'Капучино',description:'Эспрессо и нежная молочная пена',price:1200,emoji:'☕',badge:''}
   ]
 };
+
+const translit = {'а':'a','б':'b','в':'v','г':'g','ғ':'g','д':'d','е':'e','ё':'e','ж':'zh','з':'z','и':'i','й':'i','к':'k','қ':'q','л':'l','м':'m','н':'n','ң':'n','о':'o','ө':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ұ':'u','ү':'u','ф':'f','х':'h','һ':'h','ц':'c','ч':'ch','ш':'sh','щ':'sh','ы':'y','і':'i','э':'e','ю':'yu','я':'ya','ь':'','ъ':''};
+function slugify(value) { return String(value || '').trim().toLowerCase().split('').map(ch => translit[ch] ?? ch).join('').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 70); }
+async function uniqueSlug(candidate) {
+  const base = slugify(candidate) || 'menu';
+  let slug = base; let n = 2;
+  while ((await pool.query('SELECT 1 FROM restaurants WHERE slug=$1 LIMIT 1', [slug])).rowCount) slug = `${base}-${n++}`;
+  return slug;
+}
 
 async function initDb() {
   if (!pool) return;
@@ -97,11 +99,8 @@ async function seedDemo() {
   for (let i = 0; i < demo.dishes.length; i++) {
     const d = demo.dishes[i];
     const exists = await pool.query('SELECT id FROM dishes WHERE restaurant_id=$1 AND name=$2 LIMIT 1', [restaurantId, d.name]);
-    if (exists.rowCount) {
-      await pool.query('UPDATE dishes SET category_id=$2,description=$3,price=$4,emoji=$5,badge=$6,sort_order=$7 WHERE id=$1', [exists.rows[0].id, categoryIds[d.category], d.description, d.price, d.emoji, d.badge, i]);
-    } else {
-      await pool.query('INSERT INTO dishes(restaurant_id,category_id,name,description,price,emoji,badge,sort_order) VALUES($1,$2,$3,$4,$5,$6,$7,$8)', [restaurantId, categoryIds[d.category], d.name, d.description, d.price, d.emoji, d.badge, i]);
-    }
+    if (exists.rowCount) await pool.query('UPDATE dishes SET category_id=$2,description=$3,price=$4,emoji=$5,badge=$6,sort_order=$7 WHERE id=$1', [exists.rows[0].id, categoryIds[d.category], d.description, d.price, d.emoji, d.badge, i]);
+    else await pool.query('INSERT INTO dishes(restaurant_id,category_id,name,description,price,emoji,badge,sort_order) VALUES($1,$2,$3,$4,$5,$6,$7,$8)', [restaurantId, categoryIds[d.category], d.name, d.description, d.price, d.emoji, d.badge, i]);
   }
 }
 
@@ -111,37 +110,27 @@ function adminAuth(req, res, next) {
   if (!header.startsWith('Basic ')) return res.set('WWW-Authenticate', 'Basic realm="QR Menu Admin"').status(401).end();
   const decoded = Buffer.from(header.slice(6), 'base64').toString('utf8');
   const password = decoded.split(':').slice(1).join(':');
-  const a = Buffer.from(password);
-  const b = Buffer.from(ADMIN_PASSWORD);
+  const a = Buffer.from(password); const b = Buffer.from(ADMIN_PASSWORD);
   if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return res.set('WWW-Authenticate', 'Basic realm="QR Menu Admin"').status(401).end();
   next();
 }
 
 app.get('/health', async (_req, res) => {
   let database = 'not-configured';
-  if (pool) {
-    try { await pool.query('SELECT 1'); database = 'connected'; }
-    catch (_err) { database = 'error'; }
-  }
+  if (pool) { try { await pool.query('SELECT 1'); database = 'connected'; } catch (_err) { database = 'error'; } }
   res.json({ ok: true, service: 'qr-menu', database, adminConfigured: Boolean(ADMIN_PASSWORD) });
 });
 
 app.get('/api/menu/:slug', async (req, res) => {
   try {
-    if (!pool) {
-      if (req.params.slug !== 'demo') return res.status(404).json({ error: 'Restaurant not found' });
-      return res.json(demo);
-    }
+    if (!pool) { if (req.params.slug !== 'demo') return res.status(404).json({ error: 'Restaurant not found' }); return res.json(demo); }
     const r = await pool.query('SELECT id,name,slug,subtitle,phone,address,service FROM restaurants WHERE slug=$1 AND active=TRUE', [req.params.slug]);
     if (!r.rowCount) return res.status(404).json({ error: 'Restaurant not found' });
     const restaurant = r.rows[0];
     const categories = await pool.query('SELECT id,name FROM categories WHERE restaurant_id=$1 ORDER BY sort_order,id', [restaurant.id]);
     const dishes = await pool.query('SELECT d.id,d.name,d.description,d.price,d.image_url,d.emoji,d.badge,c.name AS category FROM dishes d LEFT JOIN categories c ON c.id=d.category_id WHERE d.restaurant_id=$1 AND d.active=TRUE ORDER BY d.sort_order,d.id', [restaurant.id]);
     res.json({ restaurant, categories: categories.rows.map(c => c.name), dishes: dishes.rows });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
-  }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Server error' }); }
 });
 
 app.get('/api/restaurants/:slug/qr', async (req, res) => {
@@ -149,18 +138,13 @@ app.get('/api/restaurants/:slug/qr', async (req, res) => {
     const base = process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`;
     const url = `${base.replace(/\/$/, '')}/r/${encodeURIComponent(req.params.slug)}`;
     const png = await QRCode.toBuffer(url, { width: 900, margin: 2, errorCorrectionLevel: 'H' });
-    res.set('Cache-Control', 'public, max-age=3600');
-    res.type('png').send(png);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'QR generation failed' });
-  }
+    res.set('Cache-Control', 'public, max-age=3600'); res.type('png').send(png);
+  } catch (err) { console.error(err); res.status(500).json({ error: 'QR generation failed' }); }
 });
 
 app.get('/api/admin/restaurants', adminAuth, async (_req, res) => {
   if (!pool) return res.status(503).json({ error: 'DATABASE_URL is not configured' });
-  const result = await pool.query('SELECT id,name,slug,subtitle,phone,address,service,active FROM restaurants ORDER BY id');
-  res.json(result.rows);
+  const result = await pool.query('SELECT id,name,slug,subtitle,phone,address,service,active FROM restaurants ORDER BY id'); res.json(result.rows);
 });
 
 app.get('/api/admin/restaurants/:id/menu', adminAuth, async (req, res) => {
@@ -175,14 +159,21 @@ app.get('/api/admin/restaurants/:id/menu', adminAuth, async (req, res) => {
 app.post('/api/admin/restaurants', adminAuth, async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'DATABASE_URL is not configured' });
   const { name, slug, subtitle = '', phone = '', address = '', service = '' } = req.body || {};
-  if (!name || !slug || !/^[a-z0-9-]+$/.test(slug)) return res.status(400).json({ error: 'Invalid name or slug' });
+  if (!String(name || '').trim()) return res.status(400).json({ error: 'Invalid name or slug' });
   try {
-    const result = await pool.query('INSERT INTO restaurants(name,slug,subtitle,phone,address,service) VALUES($1,$2,$3,$4,$5,$6) RETURNING *', [name, slug, subtitle, phone, address, service]);
+    const finalSlug = slug && /^[a-z0-9-]+$/.test(slug) ? (await pool.query('SELECT 1 FROM restaurants WHERE slug=$1', [slug])).rowCount ? await uniqueSlug(slug) : slug : await uniqueSlug(name);
+    const result = await pool.query('INSERT INTO restaurants(name,slug,subtitle,phone,address,service) VALUES($1,$2,$3,$4,$5,$6) RETURNING *', [String(name).trim(), finalSlug, subtitle, phone, address, service]);
     res.status(201).json(result.rows[0]);
-  } catch (err) {
-    if (err.code === '23505') return res.status(409).json({ error: 'Slug already exists' });
-    console.error(err); res.status(500).json({ error: 'Server error' });
-  }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Server error' }); }
+});
+
+app.patch('/api/admin/restaurants/:id', adminAuth, async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'DATABASE_URL is not configured' });
+  const { name, subtitle, phone, address, service, active } = req.body || {};
+  if (name !== undefined && !String(name).trim()) return res.status(400).json({ error: 'Invalid name or slug' });
+  const result = await pool.query('UPDATE restaurants SET name=COALESCE($2,name),subtitle=COALESCE($3,subtitle),phone=COALESCE($4,phone),address=COALESCE($5,address),service=COALESCE($6,service),active=COALESCE($7,active) WHERE id=$1 RETURNING *', [req.params.id, name !== undefined ? String(name).trim() : null, subtitle ?? null, phone ?? null, address ?? null, service ?? null, active ?? null]);
+  if (!result.rowCount) return res.status(404).json({ error: 'Restaurant not found' });
+  res.json(result.rows[0]);
 });
 
 app.post('/api/admin/restaurants/:id/categories', adminAuth, async (req, res) => {
@@ -192,10 +183,7 @@ app.post('/api/admin/restaurants/:id/categories', adminAuth, async (req, res) =>
   try {
     const result = await pool.query('INSERT INTO categories(restaurant_id,name,sort_order) VALUES($1,$2,(SELECT COALESCE(MAX(sort_order),-1)+1 FROM categories WHERE restaurant_id=$1)) RETURNING *', [req.params.id, name]);
     res.status(201).json(result.rows[0]);
-  } catch (err) {
-    if (err.code === '23505') return res.status(409).json({ error: 'Category already exists' });
-    console.error(err); res.status(500).json({ error: 'Server error' });
-  }
+  } catch (err) { if (err.code === '23505') return res.status(409).json({ error: 'Category already exists' }); console.error(err); res.status(500).json({ error: 'Server error' }); }
 });
 
 app.post('/api/admin/restaurants/:id/dishes', adminAuth, async (req, res) => {
@@ -210,8 +198,14 @@ app.patch('/api/admin/dishes/:id', adminAuth, async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'DATABASE_URL is not configured' });
   const { name, description, price, image_url, emoji, badge, active, category_id } = req.body || {};
   const result = await pool.query('UPDATE dishes SET name=COALESCE($2,name),description=COALESCE($3,description),price=COALESCE($4,price),image_url=COALESCE($5,image_url),emoji=COALESCE($6,emoji),badge=COALESCE($7,badge),active=COALESCE($8,active),category_id=COALESCE($9,category_id) WHERE id=$1 RETURNING *', [req.params.id, name ?? null, description ?? null, price ?? null, image_url ?? null, emoji ?? null, badge ?? null, active ?? null, category_id ?? null]);
+  if (!result.rowCount) return res.status(404).json({ error: 'Dish not found' }); res.json(result.rows[0]);
+});
+
+app.delete('/api/admin/dishes/:id', adminAuth, async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'DATABASE_URL is not configured' });
+  const result = await pool.query('DELETE FROM dishes WHERE id=$1 RETURNING id', [req.params.id]);
   if (!result.rowCount) return res.status(404).json({ error: 'Dish not found' });
-  res.json(result.rows[0]);
+  res.json({ ok: true });
 });
 
 app.get('/r/:slug', (_req, res) => res.sendFile(path.join(__dirname, 'index.html')));

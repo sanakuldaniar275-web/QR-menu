@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#111111">
   <meta name="description" content="Цифровое QR-меню заведения">
+  <meta name="robots" content="index,follow">
   <title>QR Menu</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
@@ -12,7 +13,7 @@
   <header class="restaurant-hero">
     <div class="topbar">
       <div class="brandmark">QR MENU</div>
-      <button id="langButton" class="icon-button" type="button" aria-label="Язык">RU</button>
+      <span class="icon-button" aria-label="Язык меню">RU</span>
     </div>
     <div class="hero-content">
       <span class="hero-kicker">ЦИФРОВОЕ МЕНЮ</span>
@@ -24,8 +25,8 @@
 
   <main class="menu-shell">
     <section class="quick-actions" aria-label="Быстрые действия">
-      <a id="whatsappLink" class="quick-action" href="#" hidden><span>💬</span><b>WhatsApp</b></a>
-      <a id="qrLink" class="quick-action" href="#" target="_blank"><span>▦</span><b>QR-код</b></a>
+      <a id="whatsappLink" class="quick-action" href="#" target="_blank" rel="noopener" hidden><span>💬</span><b>WhatsApp</b></a>
+      <a id="qrLink" class="quick-action" href="#" target="_blank" rel="noopener"><span>▦</span><b>QR-код</b></a>
       <button id="shareButton" class="quick-action" type="button"><span>↗</span><b>Поделиться</b></button>
       <button id="infoButton" class="quick-action" type="button"><span>ⓘ</span><b>Инфо</b></button>
     </section>

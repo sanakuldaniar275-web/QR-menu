@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Menu — Админка</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="admin-shell">
+    <div class="admin-head">
+      <div><div class="muted">QR MENU</div><h1>Админка</h1></div>
+      <a class="secondary" href="/r/demo" target="_blank">Открыть демо</a>
+    </div>
+
+    <section class="panel">
+      <h2>Новое заведение</h2>
+      <form id="restaurantForm" class="form-grid cols">
+        <input name="name" placeholder="Название заведения" required>
+        <input name="slug" placeholder="Ссылка, например arman-cafe" pattern="[a-z0-9-]+" required>
+        <input name="subtitle" placeholder="Короткое описание">
+        <input name="phone" placeholder="Телефон / WhatsApp">
+        <button class="primary" type="submit">Создать заведение</button>
+      </form>
+      <div id="status" class="status muted"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Заведения</h2>
+      <div id="restaurants">Загрузка…</div>
+    </section>
+  </main>
+  <script src="/admin.js"></script>
+</body>
+</html>

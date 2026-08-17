@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QR Menu — Demo</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="hero__overlay"></div>
+    <div class="hero__content">
+      <p class="eyebrow">QR MENU</p>
+      <h1>Demo Restaurant</h1>
+      <p class="subtitle">Современное меню прямо в телефоне</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="search-wrap">
+      <label class="search">
+        <span>⌕</span>
+        <input id="searchInput" type="search" placeholder="Поиск по меню" aria-label="Поиск по меню">
+      </label>
+    </section>
+
+    <nav class="categories" id="categories" aria-label="Категории меню"></nav>
+
+    <section class="menu-section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow dark">МЕНЮ</p>
+          <h2 id="sectionTitle">Все блюда</h2>
+        </div>
+        <span id="itemsCount" class="count"></span>
+      </div>
+      <div class="menu-grid" id="menuGrid"></div>
+      <p class="empty" id="emptyState" hidden>Ничего не найдено.</p>
+    </section>
+  </main>
+
+  <footer>
+    <strong>Demo Restaurant</strong>
+    <span>QR-меню • пример для презентации клиентам</span>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -74,6 +74,7 @@ async function initDb(){
     );
   `);
   await seedDemo();
+  await pool.query("DELETE FROM restaurants WHERE slug='shokantre-kafe' AND name='NurislamBar'");
 }
 
 async function seedDemo(){

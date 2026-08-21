@@ -3,8 +3,8 @@
   "version": "2.1.0",
   "private": true,
   "scripts": {
-    "start": "node green-bar-seed.js && node server.js",
-    "check": "node --check green-bar-seed.js && node --check server.js && node --check app.js && node --check admin.js && node --check client.js"
+    "start": "node green-bar-seed.js && node green-bar-client-account.js && node server.js",
+    "check": "node --check green-bar-seed.js && node --check green-bar-client-account.js && node --check server.js && node --check app.js && node --check admin.js && node --check client.js"
   },
   "dependencies": {
     "express": "^4.21.2",

@@ -1,0 +1,213 @@
+(()=>{
+  if(location.pathname!=='/r/green-bar') return;
+
+  const exact = {
+    'Пивное ассорти':'/greenbar-photos/beer-assorti.webp',
+    'Курица в сливочном соусе':'/greenbar-photos/chicken-cream-rice.webp',
+    'Рамен с курицей':'/greenbar-photos/ramen-chicken.webp',
+    'Куырдак из баранины':'/greenbar-photos/kuyrdak-lamb.webp',
+    'Унаги темпура':'/greenbar-photos/fried-rolls.webp',
+    'Америка темпура':'/greenbar-photos/fried-rolls.webp',
+    'Цезарь темпура':'/greenbar-photos/fried-rolls.webp'
+  };
+
+  const categoryTags = {
+    'Суши/роллы':'sushi,rolls,japanese-food',
+    'Гарниры':'side-dish,restaurant-food',
+    'Банкетные блюда':'grill,meat,platter',
+    'Салаты':'salad,fresh-food',
+    'Первые блюда':'soup,bowl,restaurant-food',
+    'Закуски':'appetizer,snack,restaurant-food',
+    'Ассорти':'food-platter,appetizer',
+    'Вторые блюда':'main-course,restaurant-food',
+    'Паста':'pasta,italian-food',
+    'Пицца':'pizza,italian-food',
+    'Стейки':'steak,grilled-meat',
+    'Фаст-фуд':'fast-food,burger,fries',
+    'Чай':'tea,teapot,cup',
+    'К чаю':'tea-snack,dessert',
+    'Прохладительные напитки':'soft-drink,soda,bottle',
+    'Лимонады':'lemonade,cold-drink',
+    'Пиво разливное':'beer,draft-beer',
+    'Пиво бутылочное':'beer,bottle',
+    'Закуски к пиву':'beer-snack,appetizer',
+    'Водка':'vodka,bottle,bar',
+    'Виски':'whisky,bottle,bar',
+    'Коньяк':'cognac,brandy,bottle',
+    'Ром':'rum,bottle,bar',
+    'Джин':'gin,bottle,bar',
+    'Текила':'tequila,bottle,bar',
+    'Вермуты':'vermouth,bottle,bar',
+    'Вино':'wine,bottle,glass',
+    'Шампанское':'champagne,bottle,glass',
+    'Настойки и биттеры':'bitters,liqueur,bottle',
+    'Ликеры':'liqueur,bottle,bar',
+    'Алкогольные напитки':'cocktail,bar,drink',
+    'Спритц-коктейли':'spritz,cocktail,bar',
+    'Шоты':'shots,bar,drink'
+  };
+
+  const nameTags = {
+    'Калифорния':'california-roll,sushi',
+    'Филадельфия':'philadelphia-roll,sushi',
+    'Капа маки':'kappa-maki,sushi',
+    'Фри':'french-fries',
+    'Дольки':'potato-wedges',
+    'Овощи на гриле':'grilled-vegetables',
+    'Рис':'rice,bowl',
+    'Пюре':'mashed-potatoes',
+    'Шашлычный микс':'shashlik,grill,meat',
+    'Гриль микс':'mixed-grill,meat',
+    'Куырдак':'kuyrdak,meat,potatoes',
+    'Теплый салат из телятины':'beef-salad,warm-salad',
+    'Хрустящий баклажан':'crispy-eggplant',
+    'Греческий':'greek-salad',
+    'Цезарь с курицей':'chicken-caesar-salad',
+    'Цезарь с креветками':'shrimp-caesar-salad',
+    'Руколла с креветками':'shrimp-arugula-salad',
+    'Фруктовый салат':'fruit-salad',
+    'Салат – микс с семгой':'salmon-salad',
+    'Рамен с мясом':'beef-ramen',
+    'Солянка':'solyanka-soup',
+    'Пельмени':'dumplings,pelmeni',
+    'Том – ям':'tom-yum-soup',
+    'Чечевичный суп':'lentil-soup',
+    'Овощное ассорти':'vegetable-platter',
+    'Русская закуска':'russian-appetizer,pickles',
+    'Фруктовая нарезка':'fruit-platter',
+    'Соленый погребок':'pickles,vegetables',
+    'Жареные креветки':'fried-shrimp',
+    'Куриное ассорти':'chicken-platter,wings,nuggets',
+    'Телятина с овощами':'veal,vegetables',
+    'Цыпленок табака':'grilled-chicken',
+    'Куриное филе с сыром':'chicken-fillet,cheese',
+    'Бефстроганов':'beef-stroganoff',
+    'Телятина с хрустящим картофелем':'veal,potatoes',
+    'Альфредо':'alfredo-pasta',
+    'Спагетти болоньезе':'bolognese-pasta',
+    'Спагетти с креветками':'shrimp-pasta',
+    'Фетучини с морепродуктами':'seafood-fettuccine',
+    'Цезарь':'pizza',
+    'Казахстан':'pizza',
+    'Пепперони':'pepperoni-pizza',
+    'Маргарита':'margherita-pizza',
+    'Куриная':'chicken-pizza',
+    'Четыре сезона':'four-seasons-pizza',
+    'Болоньезе':'bolognese-pizza',
+    'Хачапури':'khachapuri',
+    'Мексикано':'mexican-pizza',
+    'Рибай':'ribeye-steak',
+    'Тибон':'t-bone-steak',
+    'Медальоны в сливочном соусе':'beef-medallions,cream-sauce',
+    'Семга запеченная':'baked-salmon',
+    'Бургер с фри':'burger,fries',
+    'Биг бургер':'big-burger',
+    'Чикен бургер':'chicken-burger',
+    'Клаб-сэндвич':'club-sandwich',
+    'Наггетсы':'chicken-nuggets',
+    'Ягодный чай':'berry-tea',
+    'Фруктовый чай':'fruit-tea',
+    'Марокканский чай':'moroccan-tea',
+    'Ташкентский чай':'tea,teapot',
+    'Апельсиновый чай':'orange-tea',
+    'Черный чай':'black-tea',
+    'Зеленый чай':'green-tea',
+    'Тары чай':'milk-tea',
+    'Лимон':'lemon',
+    'Шоколад Alpen gold':'chocolate-bar',
+    'Шоколад Kazakhstan':'chocolate-bar',
+    'Молоко':'milk,glass',
+    'Мёд':'honey',
+    'Cola, Fanta, Sprite':'cola,fanta,sprite,soda',
+    'Piko (в ассортименте)':'juice,carton',
+    'Tassay':'water,bottle',
+    'Borjomi':'mineral-water,bottle',
+    'Turan':'water,bottle',
+    'Red bull':'red-bull,energy-drink',
+    'Манго-Маракуйя':'mango,passion-fruit,lemonade',
+    'Киви-Лайм':'kiwi,lime,lemonade',
+    'Тропический':'tropical,lemonade',
+    'Ягодный':'berry,lemonade',
+    'Апельсиновый':'orange,lemonade',
+    'Мохито':'mojito,lemonade',
+    'Манго-ананас':'mango,pineapple,lemonade',
+    'Praga':'beer,glass',
+    'Miller':'miller,beer,bottle',
+    'Corona extra':'corona,beer,bottle',
+    'Фисташки':'pistachio',
+    'Арахис':'peanuts',
+    'Чипсы':'potato-chips',
+    'Чечил':'smoked-cheese',
+    'Курт':'cheese-snack',
+    'Гренки':'garlic-croutons',
+    'Absolut':'absolut,vodka,bottle',
+    'Кызыл жар':'vodka,bottle',
+    'Бульбаш':'vodka,bottle',
+    'Grey Goose':'grey-goose,vodka,bottle',
+    'Chivas Regal 12 Y.O.':'chivas-regal,whisky,bottle',
+    'Ballantine Finest':'ballantines,whisky,bottle',
+    'Jameson':'jameson,whiskey,bottle',
+    'Jack Daniels':'jack-daniels,whiskey,bottle',
+    'William Lawsons':'william-lawsons,whisky,bottle',
+    'Ararat 3 Y.O.':'ararat,brandy,bottle',
+    'Kazakhstan 3 Y.O.':'brandy,bottle',
+    'Bacardi Carta Blanca':'bacardi,rum,bottle',
+    'Bacardi Carta Negra':'bacardi,rum,bottle',
+    'Beefeater':'beefeater,gin,bottle',
+    'Olmeca Blanco':'olmeca,tequila,bottle',
+    'Olmeca Gold':'olmeca,tequila,bottle',
+    'Martini Fierro':'martini,vermouth,bottle',
+    'Martini Bianco':'martini-bianco,vermouth,bottle',
+    'Martini Rosso':'martini-rosso,vermouth,bottle',
+    'Kindzmarauli':'kindzmarauli,wine,bottle',
+    'Алазанская Долина':'georgian-wine,bottle',
+    'Saperavi':'saperavi,wine,bottle',
+    'Casillero Tel Diablo':'casillero-del-diablo,wine,bottle',
+    'Martini Asti':'martini-asti,sparkling-wine,bottle',
+    'Lambrusco Bianco':'lambrusco,wine,bottle',
+    'Abrau Durso':'abrau-durso,champagne,bottle',
+    'Jagermeister':'jagermeister,bottle',
+    'Campari':'campari,bottle',
+    'Aperol':'aperol,bottle',
+    'Kahlua':'kahlua,bottle',
+    'Baileys':'baileys,bottle',
+    'Absinthe':'absinthe,bottle',
+    'Malibu':'malibu,liqueur,bottle',
+    'Pina Colada':'pina-colada,cocktail',
+    'Секс на пляже':'sex-on-the-beach,cocktail',
+    'Long Island':'long-island-iced-tea,cocktail',
+    'Mojito':'mojito,cocktail',
+    'Mojito Energy':'mojito,energy,cocktail',
+    'Mojito Strawberry':'strawberry-mojito,cocktail',
+    'Голубая лагуна':'blue-lagoon,cocktail',
+    'Aperol-Spritz':'aperol-spritz,cocktail',
+    'B-52':'b52-shot,cocktail',
+    'B-53':'layered-shot,cocktail'
+  };
+
+  function photoUrl(d){
+    if(exact[d.name]) return exact[d.name];
+    const tags = nameTags[d.name] || categoryTags[d.category] || 'restaurant-food';
+    const lock = Math.max(1, Number(d.id)||1);
+    return `https://loremflickr.com/640/480/${encodeURIComponent(tags)}?lock=${lock}`;
+  }
+
+  function apply(){
+    if(typeof dishes==='undefined' || !Array.isArray(dishes) || !dishes.length) return false;
+    let changed=false;
+    for(const d of dishes){
+      if(!d.image_url){ d.image_url=photoUrl(d); changed=true; }
+    }
+    if(changed && typeof render==='function') render();
+    document.querySelectorAll('.dish-photo img,.dish-detail-img').forEach(img=>{
+      img.style.objectFit='cover';
+      img.style.width='100%';
+      img.style.height='100%';
+      img.style.display='block';
+    });
+    return true;
+  }
+
+  let tries=0;
+  const timer=setInterval(()=>{ if(apply() || ++tries>40) clearInterval(timer); },250);
+})();

@@ -1,0 +1,42 @@
+/* GREEN BAR — extra-small mobile polish */
+@media (max-width: 380px) {
+  body.green-bar-ui .dish-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  body.green-bar-ui .dish-card {
+    border-radius: 16px;
+  }
+
+  body.green-bar-ui .dish-photo {
+    height: 185px;
+  }
+
+  body.green-bar-ui .dish-photo:has(.dish-emoji) {
+    height: 86px;
+  }
+
+  body.green-bar-ui .dish-body {
+    padding: 11px 12px 12px;
+  }
+
+  body.green-bar-ui .dish-body h3 {
+    font-size: 14px;
+    line-height: 1.25;
+  }
+
+  body.green-bar-ui .dish-body p {
+    font-size: 11.5px;
+    line-height: 1.35;
+  }
+
+  body.green-bar-ui .dish-bottom strong {
+    font-size: 14px;
+  }
+
+  body.green-bar-ui .mini-plus {
+    width: 32px;
+    height: 32px;
+  }
+}

@@ -1,15 +1,10 @@
 (()=>{
   if(location.pathname!=='/r/green-bar') return;
 
-  // Exact GREEN BAR supplied photos. Use the higher-quality source files;
-  // browser cropping handles cards/modals without destroying image quality.
+  // Curated fallback photos only for dishes that are not managed manually
+  // through the admin panel. The five GREEN BAR supplied dishes are deliberately
+  // excluded so admin-uploaded photos remain authoritative.
   const verified = {
-    'Пивное ассорти':'/greenbar-photos/beer-assorti.webp',
-    'Курица в сливочном соусе':'/greenbar-photos/chicken-cream-rice.webp',
-    'Рамен с курицей':'/greenbar-photos/ramen-chicken.webp',
-    'Куырдак из баранины':'/greenbar-photos/kuyrdak-lamb.webp',
-    'Америка темпура':'/greenbar-photos/fried-rolls.webp',
-
     'Унаги темпура':'https://navasushi.ru/assets/images/products/176/1000049792.jpg',
     'Капа маки':'https://www.voskesbbq.nl/wp-content/uploads/2022/07/kappa.png',
     'Калифорния':'https://imgprod.beyondmenu.com/60699/Menu/215328/624.jpg',
@@ -24,9 +19,12 @@
     'Бефстроганов':'https://popmenucloud.com/cdn-cgi/image/width%3D1200%2Cheight%3D630%2Cformat%3Dauto%2Cfit%3Dcover/wdimlvjf/107b97ef-e92e-4a0b-b129-a661b781bd7b.jpg'
   };
 
-  const supplied = new Set([
-    'Пивное ассорти','Курица в сливочном соусе','Рамен с курицей',
-    'Куырдак из баранины','Америка темпура'
+  const adminManaged = new Set([
+    'Пивное ассорти',
+    'Курица в сливочном соусе',
+    'Рамен с курицей',
+    'Куырдак из баранины',
+    'Америка темпура'
   ]);
 
   function styleImages(){
@@ -38,15 +36,14 @@
       img.style.objectPosition='50% 50%';
       img.style.imageRendering='auto';
     });
-    document.querySelectorAll('.dish-photo').forEach(el=>{
-      el.style.overflow='hidden';
-    });
+    document.querySelectorAll('.dish-photo').forEach(el=>{el.style.overflow='hidden'});
   }
 
   function apply(){
     if(typeof dishes==='undefined' || !Array.isArray(dishes) || !dishes.length) return false;
     let changed=false;
     for(const d of dishes){
+      if(adminManaged.has(d.name)) continue;
       if(verified[d.name]) {
         if(d.image_url!==verified[d.name]) { d.image_url=verified[d.name]; changed=true; }
       } else if(d.image_url && /loremflickr\.com/i.test(d.image_url)) {

@@ -1,21 +1,10 @@
 (()=>{
   if(location.pathname!=='/r/green-bar') return;
 
-  // GREEN BAR: photos saved through admin/client cabinet always have priority.
-  // Only remove obsolete random LoremFlickr fallbacks from older builds.
-  function styleImages(){
-    document.querySelectorAll('.dish-photo img,.dish-detail-img').forEach(img=>{
-      img.style.width='100%';
-      img.style.height='100%';
-      img.style.display='block';
-      img.style.objectFit='cover';
-      img.style.objectPosition='50% 50%';
-      img.style.imageRendering='auto';
-    });
-    document.querySelectorAll('.dish-photo').forEach(el=>{el.style.overflow='hidden'});
-  }
-
-  function apply(){
+  // Photos uploaded through admin/client cabinet always have priority.
+  // Keep this helper intentionally lightweight: on mobile we must not scan the
+  // whole DOM on every mutation, especially when many dishes have base64 photos.
+  function cleanObsoleteFallbacks(){
     if(typeof dishes==='undefined' || !Array.isArray(dishes) || !dishes.length) return false;
     let changed=false;
     for(const d of dishes){
@@ -25,12 +14,12 @@
       }
     }
     if(changed && typeof render==='function') render();
-    styleImages();
     return true;
   }
 
-  const observer=new MutationObserver(styleImages);
-  observer.observe(document.documentElement,{childList:true,subtree:true});
+  // Images are styled by CSS. Poll only until menu data arrives, then stop.
   let tries=0;
-  const timer=setInterval(()=>{ if(apply() || ++tries>40) clearInterval(timer); },250);
+  const timer=setInterval(()=>{
+    if(cleanObsoleteFallbacks() || ++tries>40) clearInterval(timer);
+  },250);
 })();

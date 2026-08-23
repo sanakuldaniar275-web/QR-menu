@@ -25,6 +25,28 @@ body.green-bar-ui .total-bar{background:#0b5135!important;color:#fff}
 body.green-bar-ui .total-bar span b{background:#f1dfb1;color:#123425}
 .gb-category-toggle,.gb-category-backdrop{display:none}
 
+/* GREEN BAR first / welcome screen */
+.gb-welcome{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 50% 16%,#184f39 0,#0a2f22 34%,#071f17 70%,#061711 100%);overflow:auto;transition:opacity .25s ease,transform .25s ease}
+.gb-welcome.leaving{opacity:0;transform:scale(1.015);pointer-events:none}
+body.gb-welcome-open{overflow:hidden}
+.gb-welcome-card{width:min(100%,520px);color:#fff;text-align:center;padding:30px 22px 24px}
+.gb-welcome-brand{display:flex;flex-direction:column;align-items:center;gap:16px}
+.gb-welcome-brand img{width:132px;height:132px;object-fit:contain;border-radius:28px;filter:drop-shadow(0 14px 26px #0007)}
+.gb-welcome-brand span{display:block;font-size:10px;letter-spacing:3px;color:#dfc98f;font-weight:800}
+.gb-welcome-brand h1{margin:8px 0 0;font-size:42px;line-height:1;letter-spacing:-1.3px}
+.gb-welcome-brand p{margin:8px 0 0;color:#d8ddd8;font-size:14px}
+.gb-enter-menu{width:100%;min-height:56px;margin:30px 0 22px;border:0;border-radius:16px;background:#e9d5a0;color:#123526;font-size:17px;font-weight:850;box-shadow:0 10px 28px #0004;cursor:pointer}
+.gb-welcome-links{display:grid;gap:10px;text-align:left}
+.gb-welcome-links>a,.gb-address{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 15px;border:1px solid #ffffff1f;border-radius:15px;background:#ffffff0b;color:#fff;text-decoration:none;backdrop-filter:blur(7px)}
+.gb-welcome-links b{font-size:13px}.gb-welcome-links span{font-size:12px;color:#cdd7d1;text-align:right}
+
+/* GREEN BAR top-level menu groups */
+.gb-menu-groups{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gb-menu-groups button{min-height:54px;border:1px solid #d8d0c4;border-radius:15px;background:#fff;padding:10px 14px;color:#173b2a;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;cursor:pointer}
+.gb-menu-groups button.active{background:#0b5135;color:#fff;border-color:#0b5135;box-shadow:0 6px 16px #0b513526}
+.gb-menu-groups button span{font-size:18px}.gb-menu-groups button b{font-size:13.5px}
+.category[hidden],.dish-card[hidden]{display:none!important}
+
 /* GREEN BAR supplied vertical story photos: force the dish itself into view. */
 img[src*="/greenbar-photos/beer-assorti.webp"]{object-fit:cover!important;object-position:50% 82%!important}
 img[src*="/greenbar-photos/chicken-cream-rice.webp"]{object-fit:cover!important;object-position:50% 42%!important}
@@ -32,21 +54,23 @@ img[src*="/greenbar-photos/ramen-chicken.webp"]{object-fit:cover!important;objec
 img[src*="/greenbar-photos/kuyrdak-lamb.webp"]{object-fit:cover!important;object-position:50% 40%!important}
 
 @media(min-width:900px){
-  body.green-bar-ui .menu-shell{display:grid;grid-template-columns:215px minmax(0,1fr);grid-template-rows:auto auto auto;column-gap:20px;row-gap:12px;padding:18px 16px 24px}
+  body.green-bar-ui .menu-shell{display:grid;grid-template-columns:215px minmax(0,1fr);grid-template-rows:auto auto auto auto;column-gap:20px;row-gap:12px;padding:18px 16px 24px}
   body.green-bar-ui .quick-actions{grid-column:2;grid-row:1;margin-top:0;display:flex;justify-content:flex-end;gap:8px;max-width:none}
+  body.green-bar-ui .gb-menu-groups{grid-column:2;grid-row:2}
   body.green-bar-ui .quick-action{min-height:46px;min-width:122px;padding:0 15px;border:1px solid #e2dbd0;border-radius:13px;flex-direction:row;gap:8px;box-shadow:none}
   body.green-bar-ui .quick-action span{font-size:17px}
   body.green-bar-ui .quick-action b{font-size:12px}
-  body.green-bar-ui .search-wrap{grid-column:2;grid-row:2;position:sticky;top:0;padding:4px 0 8px;background:#f3eadc}
-  body.green-bar-ui .categories{grid-column:1;grid-row:1 / span 3;display:flex;flex-direction:column;gap:5px;max-height:calc(100vh - 32px);overflow-y:auto;position:sticky;top:16px;padding:14px;background:linear-gradient(180deg,#0a4a31,#083923);border-radius:20px;scrollbar-width:thin;scrollbar-color:#ffffff55 transparent}
+  body.green-bar-ui .search-wrap{grid-column:2;grid-row:3;position:sticky;top:0;padding:4px 0 8px;background:#f3eadc}
+  body.green-bar-ui .categories{grid-column:1;grid-row:1 / span 4;display:flex;flex-direction:column;gap:5px;max-height:calc(100vh - 32px);overflow-y:auto;position:sticky;top:16px;padding:14px;background:linear-gradient(180deg,#0a4a31,#083923);border-radius:20px;scrollbar-width:thin;scrollbar-color:#ffffff55 transparent}
   body.green-bar-ui .category{width:100%;min-height:36px;padding:8px 10px;border:0;border-radius:10px;background:transparent;color:#fff;text-align:left;font-size:12.5px;white-space:normal}
   body.green-bar-ui .category:hover{background:#ffffff14}
-  body.green-bar-ui .menu{grid-column:2;grid-row:3;min-width:0}
+  body.green-bar-ui .menu{grid-column:2;grid-row:4;min-width:0}
   body.green-bar-ui .dish-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
   body.green-bar-ui .dish-photo{height:138px}
 }
 
 @media(max-width:899px){
+  .gb-welcome{padding:18px}.gb-welcome-card{padding:20px 4px 24px}.gb-welcome-brand img{width:112px;height:112px}.gb-welcome-brand h1{font-size:34px}.gb-enter-menu{margin-top:24px}
   body.green-bar-ui .restaurant-hero{padding:13px 14px 20px;border-radius:0 0 20px 20px}
   body.green-bar-ui .hero-content{margin-top:17px}
   body.green-bar-ui .hero-content h1{font-size:29px;line-height:1.05}
@@ -55,6 +79,7 @@ img[src*="/greenbar-photos/kuyrdak-lamb.webp"]{object-fit:cover!important;object
   body.green-bar-ui .restaurant-meta{margin-top:9px}
   body.green-bar-ui .menu-shell{padding:0 12px 18px}
   body.green-bar-ui .quick-actions{margin-top:-10px;gap:6px;grid-template-columns:repeat(3,1fr)}
+  body.green-bar-ui .gb-menu-groups{margin-top:12px}
   body.green-bar-ui .quick-action{min-height:54px;border-radius:14px;gap:3px}
   body.green-bar-ui .quick-action span{font-size:17px}
   body.green-bar-ui .quick-action b{font-size:10.5px}
@@ -88,6 +113,7 @@ img[src*="/greenbar-photos/kuyrdak-lamb.webp"]{object-fit:cover!important;object
 }
 
 @media(max-width:380px){
+  .gb-welcome-links>a,.gb-address{align-items:flex-start;flex-direction:column;gap:5px}.gb-welcome-links span{text-align:left}
   body.green-bar-ui .hero-content h1{font-size:25px}
   body.green-bar-ui .menu-shell{padding-left:9px;padding-right:9px}
   body.green-bar-ui .dish-grid{gap:7px}

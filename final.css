@@ -25,6 +25,12 @@ body.green-bar-ui .total-bar{background:#0b5135!important;color:#fff}
 body.green-bar-ui .total-bar span b{background:#f1dfb1;color:#123425}
 .gb-category-toggle,.gb-category-backdrop{display:none}
 
+/* GREEN BAR supplied vertical story photos: force the dish itself into view. */
+img[src*="/greenbar-photos/beer-assorti.webp"]{object-fit:cover!important;object-position:50% 82%!important}
+img[src*="/greenbar-photos/chicken-cream-rice.webp"]{object-fit:cover!important;object-position:50% 42%!important}
+img[src*="/greenbar-photos/ramen-chicken.webp"]{object-fit:cover!important;object-position:50% 70%!important}
+img[src*="/greenbar-photos/kuyrdak-lamb.webp"]{object-fit:cover!important;object-position:50% 40%!important}
+
 @media(min-width:900px){
   body.green-bar-ui .menu-shell{display:grid;grid-template-columns:215px minmax(0,1fr);grid-template-rows:auto auto auto;column-gap:20px;row-gap:12px;padding:18px 16px 24px}
   body.green-bar-ui .quick-actions{grid-column:2;grid-row:1;margin-top:0;display:flex;justify-content:flex-end;gap:8px;max-width:none}

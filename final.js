@@ -25,35 +25,33 @@ document.addEventListener('error', event => {
   ]);
   let menuGroup = 'main';
 
-  // First screen shown immediately after scanning the QR code.
-  const welcome = document.createElement('div');
-  welcome.className = 'gb-welcome';
-  welcome.innerHTML = `
-    <div class="gb-welcome-card">
-      <div class="gb-welcome-brand">
-        <img src="/greenbar-logo.webp" alt="GREEN LOUNGE-BAR">
-        <div>
-          <span>LOUNGE • BAR • KITCHEN</span>
-          <h1>GREEN BAR</h1>
-          <p>Shymkent</p>
+  const params = new URLSearchParams(location.search);
+  const openMenuDirectly = params.get('menu') === '1';
+
+  if (!openMenuDirectly) {
+    const welcome = document.createElement('div');
+    welcome.className = 'gb-welcome';
+    welcome.innerHTML = `
+      <div class="gb-welcome-card">
+        <div class="gb-welcome-brand">
+          <img src="/greenbar-logo.webp" alt="GREEN LOUNGE-BAR">
+          <div>
+            <span>LOUNGE • BAR • KITCHEN</span>
+            <h1>GREEN BAR</h1>
+            <p>Shymkent</p>
+          </div>
         </div>
-      </div>
-      <button class="gb-enter-menu" type="button">Смотреть меню</button>
-      <div class="gb-welcome-links">
-        <a href="https://2gis.kz/shymkent/geo/70000001063732278" target="_blank" rel="noopener"><b>Как добраться</b><span>Открыть маршрут в 2GIS</span></a>
-        <div class="gb-address"><b>Адрес заведения</b><span>проспект Кунаева, 17/7</span></div>
-        <a href="https://wa.me/77053623265" target="_blank" rel="noopener"><b>WhatsApp</b><span>+7 705 362 32 65</span></a>
-        <a href="https://www.instagram.com/greenbar_17" target="_blank" rel="noopener"><b>Instagram</b><span>@greenbar_17</span></a>
-      </div>
-    </div>`;
-  document.body.prepend(welcome);
-  document.body.classList.add('gb-welcome-open');
-  welcome.querySelector('.gb-enter-menu').addEventListener('click', () => {
-    welcome.classList.add('leaving');
-    document.body.classList.remove('gb-welcome-open');
-    setTimeout(() => welcome.remove(), 260);
-    window.scrollTo({top:0, behavior:'smooth'});
-  });
+        <a class="gb-enter-menu" href="/r/green-bar?menu=1">Смотреть меню</a>
+        <div class="gb-welcome-links">
+          <a href="https://2gis.kz/shymkent/geo/70000001063732278" target="_blank" rel="noopener"><b>Как добраться</b><span>Открыть маршрут в 2GIS</span></a>
+          <div class="gb-address"><b>Адрес заведения</b><span>проспект Кунаева, 17/7</span></div>
+          <a href="https://wa.me/77053623265" target="_blank" rel="noopener"><b>WhatsApp</b><span>+7 705 362 32 65</span></a>
+          <a href="https://www.instagram.com/greenbar_17" target="_blank" rel="noopener"><b>Instagram</b><span>@greenbar_17</span></a>
+        </div>
+      </div>`;
+    document.body.prepend(welcome);
+    document.body.classList.add('gb-welcome-open');
+  }
 
   const categories = document.querySelector('#categories');
   const searchWrap = document.querySelector('.search-wrap');
@@ -61,7 +59,6 @@ document.addEventListener('error', event => {
   const menuRoot = document.querySelector('#menu');
   if (!categories || !searchWrap || !quickActions || !menuRoot) return;
 
-  // Two top-level menu sections.
   const groupNav = document.createElement('div');
   groupNav.className = 'gb-menu-groups';
   groupNav.innerHTML = `
@@ -73,9 +70,13 @@ document.addEventListener('error', event => {
   function categoryAllowed(label){ return label === 'Все' || allowedSet().has(label); }
 
   function syncGroupUi(){
-    groupNav.querySelectorAll('[data-gb-group]').forEach(b => b.classList.toggle('active', b.dataset.gbGroup === menuGroup));
+    groupNav.querySelectorAll('[data-gb-group]').forEach(b => {
+      const shouldBeActive = b.dataset.gbGroup === menuGroup;
+      if (b.classList.contains('active') !== shouldBeActive) b.classList.toggle('active', shouldBeActive);
+    });
     categories.querySelectorAll('.category').forEach(button => {
-      button.hidden = !categoryAllowed(button.textContent.trim());
+      const shouldHide = !categoryAllowed(button.textContent.trim());
+      if (button.hidden !== shouldHide) button.hidden = shouldHide;
     });
   }
 
@@ -85,11 +86,12 @@ document.addEventListener('error', event => {
     menuRoot.querySelectorAll('.dish-card[data-dish]').forEach(card => {
       const d = typeof dishes !== 'undefined' ? dishes.find(x => String(x.id) === String(card.dataset.dish)) : null;
       const visible = !d || allowed.has(d.category);
-      card.hidden = !visible;
+      if (card.hidden === visible) card.hidden = !visible;
       if (visible) shown++;
     });
     const sectionCount = menuRoot.querySelector('.section-head span');
-    if (sectionCount) sectionCount.textContent = `${shown} поз.`;
+    const nextText = `${shown} поз.`;
+    if (sectionCount && sectionCount.textContent !== nextText) sectionCount.textContent = nextText;
     syncGroupUi();
   }
 
@@ -100,7 +102,7 @@ document.addEventListener('error', event => {
     syncGroupUi();
     const all = [...categories.querySelectorAll('.category')].find(x => x.textContent.trim() === 'Все');
     if (all) all.click();
-    setTimeout(() => { filterRenderedCards(); sync(); }, 0);
+    setTimeout(filterRenderedCards, 0);
   });
 
   const toggle = document.createElement('button');
@@ -129,14 +131,16 @@ document.addEventListener('error', event => {
     syncGroupUi();
     const originals = [...categories.querySelectorAll('.category')].filter(button => categoryAllowed(button.textContent.trim()));
     const activeButton = originals.find(button => button.classList.contains('active'));
-    toggle.firstElementChild.textContent = activeButton?.textContent?.trim() || 'Все категории';
-    list.innerHTML = originals.map(button => {
+    const nextToggleText = activeButton?.textContent?.trim() || 'Все категории';
+    if (toggle.firstElementChild.textContent !== nextToggleText) toggle.firstElementChild.textContent = nextToggleText;
+    const html = originals.map(button => {
       const label = button.textContent.trim();
       const selected = button.classList.contains('active') ? ' active' : '';
       const allOriginals = [...categories.querySelectorAll('.category')];
       const index = allOriginals.indexOf(button);
-      return `<button type="button" class="${selected.trim()}" data-gb-category-index="${index}">${label.replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}</button>`;
+      return `<button type="button" class="${selected.trim()}" data-gb-category-index="${index}">${label.replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[ch]))}</button>`;
     }).join('');
+    if (list.innerHTML !== html) list.innerHTML = html;
   }
 
   toggle.addEventListener('click', open);
@@ -154,8 +158,23 @@ document.addEventListener('error', event => {
     if (event.key === 'Escape' && backdrop.classList.contains('open')) close();
   });
 
-  new MutationObserver(() => { sync(); filterRenderedCards(); }).observe(categories, {childList:true, subtree:true, attributes:true, attributeFilter:['class']});
-  new MutationObserver(filterRenderedCards).observe(menuRoot, {childList:true, subtree:true});
+  new MutationObserver(() => {
+    sync();
+    filterRenderedCards();
+  }).observe(categories, {childList:true, subtree:true, attributes:true, attributeFilter:['class']});
+
+  // Only react when menu cards are initially rendered. The guarded text/hidden
+  // updates above avoid self-triggering mutation loops that previously froze the page.
+  let menuRenderScheduled = false;
+  new MutationObserver(() => {
+    if (menuRenderScheduled) return;
+    menuRenderScheduled = true;
+    requestAnimationFrame(() => {
+      menuRenderScheduled = false;
+      filterRenderedCards();
+    });
+  }).observe(menuRoot, {childList:true});
+
   sync();
   filterRenderedCards();
 })();

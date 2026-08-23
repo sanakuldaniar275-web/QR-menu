@@ -50,4 +50,5 @@
   credentialCard.querySelector('#copyClientAccess').addEventListener('click',()=>{const login=clientAccessForm.elements.username.value.trim()||credLogin.textContent,password=clientAccessForm.elements.password.value||credPassword.textContent;if(!login||login==='—')return statusEl.textContent='Сначала задайте логин клиента.';if(!password||password.startsWith('Скрыт')||password.startsWith('Задайте'))return statusEl.textContent='Чтобы передать пароль клиенту, задайте или сгенерируйте новый.';copyText(`QR Menu — ${selectedRestaurant?.name||'заведение'}\nВход: ${credUrl.textContent}\nЛогин: ${login}\nПароль: ${password}\nМеню: ${location.origin}/r/${selectedRestaurant?.slug||''}`)});
   clientAccessForm.elements.username.addEventListener('input',()=>credLogin.textContent=clientAccessForm.elements.username.value.trim()||'—');
   resetPhoto();
+  const onboardingScript=document.createElement('script');onboardingScript.src='/admin-onboarding.js?v=1';document.body.appendChild(onboardingScript);
 })();

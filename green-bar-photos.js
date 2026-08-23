@@ -30,6 +30,27 @@
     'Бефстроганов':'https://popmenucloud.com/cdn-cgi/image/width%3D1200%2Cheight%3D630%2Cformat%3Dauto%2Cfit%3Dcover/wdimlvjf/107b97ef-e92e-4a0b-b129-a661b781bd7b.jpg'
   };
 
+  // The supplied GREEN BAR images are vertical story photos. Position each crop
+  // around the actual dish instead of the text/header area of the source image.
+  const suppliedPhotoPosition = {
+    'Пивное ассорти':'50% 72%',
+    'Курица в сливочном соусе':'50% 38%',
+    'Рамен с курицей':'50% 67%',
+    'Куырдак из баранины':'50% 38%'
+  };
+
+  function styleImages(){
+    document.querySelectorAll('.dish-photo img,.dish-detail-img').forEach(img=>{
+      img.style.objectFit='cover';
+      img.style.width='100%';
+      img.style.height='100%';
+      img.style.display='block';
+      const src=img.getAttribute('src')||'';
+      const dishName=Object.keys(verified).find(name=>verified[name]===src);
+      img.style.objectPosition=(dishName && suppliedPhotoPosition[dishName]) ? suppliedPhotoPosition[dishName] : '50% 50%';
+    });
+  }
+
   function apply(){
     if(typeof dishes==='undefined' || !Array.isArray(dishes) || !dishes.length) return false;
     let changed=false;
@@ -41,14 +62,13 @@
       }
     }
     if(changed && typeof render==='function') render();
-    document.querySelectorAll('.dish-photo img,.dish-detail-img').forEach(img=>{
-      img.style.objectFit='cover';
-      img.style.width='100%';
-      img.style.height='100%';
-      img.style.display='block';
-    });
+    styleImages();
     return true;
   }
+
+  // Re-apply after cards/details are rendered or a detail modal is opened.
+  const observer=new MutationObserver(styleImages);
+  observer.observe(document.documentElement,{childList:true,subtree:true});
 
   let tries=0;
   const timer=setInterval(()=>{ if(apply() || ++tries>40) clearInterval(timer); },250);

@@ -1,0 +1,43 @@
+/* GREEN BAR welcome screen — polished desktop + mobile */
+.gb-welcome .gb-welcome-card{width:min(100%,620px);padding:34px 24px 30px}
+.gb-welcome .gb-welcome-brand{gap:14px}
+.gb-welcome .gb-welcome-brand img{width:138px;height:138px;border-radius:30px}
+.gb-welcome .gb-welcome-brand h1{font-size:44px;letter-spacing:-1.4px}
+.gb-welcome .gb-welcome-brand p{margin-top:7px}
+.gb-welcome-intro{margin:22px auto 0;max-width:500px;text-align:left}
+.gb-welcome-intro h2{margin:0 0 8px;color:#fff;font-size:24px;line-height:1.2;letter-spacing:-.35px}
+.gb-welcome-intro p{margin:0;color:#cad7d0;font-size:14px;line-height:1.55}
+.gb-menu-cta-wrap{margin:24px 0 22px;padding:10px;border-radius:22px;background:#f6f0e4;box-shadow:0 18px 48px #0005}
+.gb-enter-menu{margin:0!important;min-height:66px!important;padding:0 16px!important;border-radius:17px!important;background:#123c2b!important;color:#fff!important;display:grid!important;grid-template-columns:44px 1fr 44px;align-items:center;gap:12px;text-decoration:none!important;box-shadow:none!important;font-size:18px!important;font-weight:800!important;letter-spacing:-.2px}
+.gb-enter-menu .gb-cta-icon,.gb-enter-menu .gb-cta-arrow{width:40px;height:40px;border-radius:50%;display:grid;place-items:center}
+.gb-enter-menu .gb-cta-icon{font-size:21px;background:#ffffff12}
+.gb-enter-menu .gb-cta-label{text-align:left}
+.gb-enter-menu .gb-cta-arrow{justify-self:end;background:#f1dfb1;color:#123c2b;font-size:24px;font-weight:900}
+.gb-enter-menu:hover{transform:translateY(-1px);background:#0d3324!important}
+.gb-enter-menu:active{transform:translateY(0)}
+.gb-welcome-links{gap:9px}
+.gb-welcome-links>a,.gb-address{min-height:60px;padding:15px 16px;border-radius:16px;background:#ffffff0d}
+.gb-welcome-links b{font-size:13.5px}.gb-welcome-links span{font-size:12.5px}
+
+@media(max-width:899px){
+  .gb-welcome{align-items:flex-start;padding:calc(18px + env(safe-area-inset-top)) 14px calc(22px + env(safe-area-inset-bottom))}
+  .gb-welcome .gb-welcome-card{width:100%;max-width:520px;padding:14px 0 24px}
+  .gb-welcome .gb-welcome-brand img{width:112px;height:112px;border-radius:24px}
+  .gb-welcome .gb-welcome-brand h1{font-size:36px}
+  .gb-welcome-intro{margin-top:19px;padding:0 4px}
+  .gb-welcome-intro h2{font-size:21px}
+  .gb-welcome-intro p{font-size:13.5px;line-height:1.5}
+  .gb-menu-cta-wrap{margin:20px 0 18px;padding:8px;border-radius:20px}
+  .gb-enter-menu{min-height:64px!important;grid-template-columns:40px 1fr 40px;font-size:17px!important;border-radius:15px!important}
+  .gb-enter-menu .gb-cta-icon,.gb-enter-menu .gb-cta-arrow{width:38px;height:38px}
+  .gb-welcome-links>a,.gb-address{min-height:58px;padding:14px 15px}
+}
+
+@media(max-width:380px){
+  .gb-welcome .gb-welcome-brand img{width:96px;height:96px}
+  .gb-welcome .gb-welcome-brand h1{font-size:32px}
+  .gb-welcome-intro h2{font-size:19px}
+  .gb-welcome-intro p{font-size:13px}
+  .gb-enter-menu{min-height:60px!important;grid-template-columns:36px 1fr 36px;padding:0 12px!important;font-size:16px!important}
+  .gb-enter-menu .gb-cta-icon,.gb-enter-menu .gb-cta-arrow{width:34px;height:34px}
+}

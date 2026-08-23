@@ -52,3 +52,28 @@
   resetPhoto();
   const onboardingScript=document.createElement('script');onboardingScript.src='/admin-onboarding.js?v=1';document.body.appendChild(onboardingScript);
 })();
+
+(()=>{
+  const demo=document.querySelector('.demo-panel');
+  const clients=document.querySelector('#clients');
+  const editor=document.querySelector('#editor');
+  const sidebar=[...document.querySelectorAll('.admin-sidebar a')];
+  const dashboardLink=sidebar.find(a=>a.textContent.trim()==='Панель управления');
+  const clientsLink=sidebar.find(a=>a.textContent.trim()==='Мои клиенты');
+  if(!demo||!clients||!dashboardLink||!clientsLink) return;
+
+  dashboardLink.setAttribute('href','#dashboard');
+  clientsLink.setAttribute('href','#clients');
+
+  function show(view){
+    const clientsView=view==='clients';
+    demo.hidden=clientsView;
+    clients.hidden=!clientsView;
+    if(editor) editor.hidden=true;
+    dashboardLink.classList.toggle('active',!clientsView);
+    clientsLink.classList.toggle('active',clientsView);
+  }
+  function route(){show(location.hash==='#clients'?'clients':'dashboard')}
+  window.addEventListener('hashchange',route);
+  route();
+})();

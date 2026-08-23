@@ -18,19 +18,23 @@
     if(!enabled.checked)return;
     e.preventDefault();e.stopImmediatePropagation();
     statusEl.textContent='Создаём клиента и личный кабинет…';
-    const body=Object.fromEntries(new FormData(form).entries());delete body.username;delete body.password;body.slug=slugify(body.slug||body.name);
+    const body=Object.fromEntries(new FormData(form).entries());body.slug=slugify(body.slug||body.name);
     const u=username.value.trim().toLowerCase(),p=password.value;
     if(!/^[a-z0-9._-]{3,40}$/.test(u)){statusEl.textContent='Логин: 3–40 символов, латиница/цифры.';return}
     if(p.length<8){statusEl.textContent='Пароль должен быть минимум 8 символов.';return}
     try{
       const created=await api('/api/admin/restaurants',{method:'POST',body:JSON.stringify(body)});
       await api(`/api/admin/restaurants/${created.id}/client-access`,{method:'POST',body:JSON.stringify({enabled:true,username:u,password:p})});
-      const handoff=`Ссылка: ${location.origin}/client\nЛогин: ${u}\nПароль: ${p}\nМеню: ${location.origin}/r/${created.slug}`;
+      const handoff=`QR Menu — ${created.name}\nВход: ${location.origin}/client\nЛогин: ${u}\nПароль: ${p}\nМеню: ${location.origin}/r/${created.slug}`;
       sessionStorage.setItem(`new-client-handoff:${created.id}`,handoff);
       form.reset();slugInput.dataset.manual='';username.dataset.manual='';enabled.checked=false;fields.hidden=true;setCreateOpen(false);
       statusEl.textContent='Клиент и личный кабинет созданы. Данные для передачи готовы ниже.';
       await loadRestaurants();resetDishEdit();await openEditor(created.id);editorEl.scrollIntoView({behavior:'smooth',block:'start'});
-      setTimeout(()=>{const box=document.querySelector('#clientHandoffBox');if(box){const text=box.querySelector('#clientHandoffText');if(text)text.textContent=handoff}},0);
+      const loginCode=document.querySelector('#credentialLogin'),passwordCode=document.querySelector('#credentialPassword');
+      if(loginCode)loginCode.textContent=u;if(passwordCode)passwordCode.textContent=p;
+      if(clientAccessForm?.elements?.username)clientAccessForm.elements.username.value=u;
+      if(clientAccessForm?.elements?.password)clientAccessForm.elements.password.value=p;
+      const copyButton=document.querySelector('#copyClientAccess');if(copyButton)copyButton.focus();
     }catch(err){statusEl.textContent=err.message}
   },true);
 })();

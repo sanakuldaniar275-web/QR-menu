@@ -1,0 +1,103 @@
+(()=>{
+  const wrap=document.querySelector('#createClientWrap');
+  const toggle=document.querySelector('#toggleCreateClient');
+  const status=document.querySelector('#status');
+  if(!wrap||!toggle||!window.api) return;
+
+  const TYPES={
+    food:{icon:'🍽️',title:'Ресторан / кафе / бар',hint:'Меню, блюда, обслуживание и варианты'},
+    products:{icon:'🛍️',title:'Магазин / товары',hint:'Каталог товаров, цены, фото и варианты'},
+    flowers:{icon:'💐',title:'Цветочный магазин',hint:'Букеты, цветы, композиции и подарки'},
+    auto:{icon:'🚘',title:'Автосалон',hint:'Автомобили, комплектации, цены и фото'},
+    services:{icon:'🛠️',title:'Услуги',hint:'Услуги, описание, стоимость и фото'},
+    other:{icon:'▦',title:'Другое',hint:'Универсальный QR-каталог'}
+  };
+
+  wrap.innerHTML=`
+    <div class="create-wizard">
+      <div class="wizard-head">
+        <div><div class="muted">НОВЫЙ КЛИЕНТ</div><h2>Создать QR-каталог</h2><p class="muted">Четыре коротких шага. Интерфейс клиента автоматически подстроится под его бизнес.</p></div>
+        <button id="wizardClose" class="secondary" type="button">Закрыть</button>
+      </div>
+      <div class="wizard-steps" aria-label="Шаги создания">
+        <button type="button" data-step-dot="1" class="active"><b>1</b><span>Тип бизнеса</span></button>
+        <button type="button" data-step-dot="2"><b>2</b><span>Данные</span></button>
+        <button type="button" data-step-dot="3"><b>3</b><span>Доступ</span></button>
+        <button type="button" data-step-dot="4"><b>4</b><span>Проверка</span></button>
+      </div>
+      <form id="createWizardForm">
+        <section class="wizard-page" data-page="1">
+          <h3>Что создаём?</h3><p class="muted">Выберите тип бизнеса. От этого будут зависеть названия разделов внутри каталога.</p>
+          <div class="business-card-grid">${Object.entries(TYPES).map(([k,v])=>`<label class="business-card"><input type="radio" name="business_type" value="${k}" ${k==='food'?'checked':''}><span class="business-icon">${v.icon}</span><strong>${v.title}</strong><small>${v.hint}</small></label>`).join('')}</div>
+        </section>
+        <section class="wizard-page" data-page="2" hidden>
+          <h3>Данные бизнеса</h3><p class="muted">Заполните только то, что будет полезно клиенту и посетителям.</p>
+          <div class="form-grid cols">
+            <label><span class="muted">Название</span><input name="name" placeholder="Например: Kaskelen Filter" required></label>
+            <label><span class="muted">Ссылка каталога</span><input name="slug" placeholder="kaskelen-filter" autocomplete="off"></label>
+            <label><span class="muted">Подзаголовок</span><input name="subtitle" placeholder="Например: Водяные фильтры"></label>
+            <label><span class="muted">WhatsApp</span><input name="phone" inputmode="tel" placeholder="87001234567"></label>
+            <label><span class="muted">Адрес</span><input name="address" placeholder="Адрес / город"></label>
+            <label id="wizardServiceLabel"><span class="muted">Обслуживание</span><input name="service" placeholder="Например: Обслуживание 15%"></label>
+          </div>
+          <div class="wizard-note"><strong>Подзаголовок</strong><span>Это короткое описание под названием. Например: «Водяные фильтры • Каскелен», «Цветочный магазин • Шымкент» или «Автомобили с пробегом».</span></div>
+        </section>
+        <section class="wizard-page" data-page="3" hidden>
+          <h3>Кто будет управлять каталогом?</h3>
+          <div class="access-choice-grid">
+            <label class="access-choice selected"><input type="radio" name="access_mode" value="managed" checked><span><strong>Под ключ</strong><small>Все изменения делаете вы через главную админку. Клиент получает только QR и ссылку.</small></span></label>
+            <label class="access-choice"><input type="radio" name="access_mode" value="cabinet"><span><strong>Личный кабинет</strong><small>Клиент получает логин и пароль и сможет менять каталог самостоятельно.</small></span></label>
+          </div>
+          <div id="wizardCredentials" class="form-grid cols" hidden>
+            <label><span class="muted">Логин клиента</span><input name="username" autocomplete="off" placeholder="например: kaskelenfilter"></label>
+            <label><span class="muted">Пароль</span><div class="password-inline"><input name="password" type="text" autocomplete="off" placeholder="минимум 8 символов"><button id="wizardGeneratePassword" class="secondary" type="button">Сгенерировать</button></div></label>
+          </div>
+        </section>
+        <section class="wizard-page" data-page="4" hidden>
+          <h3>Проверьте перед созданием</h3>
+          <div id="wizardReview" class="wizard-review"></div>
+          <div class="wizard-note"><strong>После создания</strong><span>Клиент появится в «Мои клиенты». Вы сможете добавить категории, товары/блюда/услуги, фотографии и сразу получить QR-код.</span></div>
+        </section>
+        <div id="wizardStatus" class="status muted"></div>
+        <div class="wizard-actions"><button id="wizardBack" class="secondary" type="button" hidden>← Назад</button><button id="wizardNext" class="primary" type="button">Продолжить →</button><button id="wizardCreate" class="primary" type="submit" hidden>Создать клиента</button></div>
+      </form>
+    </div>`;
+
+  const f=wrap.querySelector('#createWizardForm'), pages=[...wrap.querySelectorAll('.wizard-page')], dots=[...wrap.querySelectorAll('[data-step-dot]')], back=wrap.querySelector('#wizardBack'),next=wrap.querySelector('#wizardNext'),create=wrap.querySelector('#wizardCreate'),serviceLabel=wrap.querySelector('#wizardServiceLabel'),credentials=wrap.querySelector('#wizardCredentials'),review=wrap.querySelector('#wizardReview'),wizardStatus=wrap.querySelector('#wizardStatus');
+  let step=1;
+  const randomPassword=()=>{const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#';const bytes=new Uint32Array(14);crypto.getRandomValues(bytes);return [...bytes].map(n=>chars[n%chars.length]).join('')};
+  const selectedType=()=>f.elements.business_type.value||'other';
+  const selectedAccess=()=>f.elements.access_mode.value||'managed';
+  const cleanSlug=v=>window.slugify?slugify(v):String(v||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  function syncType(){serviceLabel.hidden=selectedType()!=='food'}
+  function syncAccess(){const cabinet=selectedAccess()==='cabinet';credentials.hidden=!cabinet;wrap.querySelectorAll('.access-choice').forEach(x=>x.classList.toggle('selected',x.querySelector('input').checked));if(cabinet){if(!f.elements.username.value)f.elements.username.value=cleanSlug(f.elements.name.value).replace(/-/g,'').slice(0,32);if(!f.elements.password.value)f.elements.password.value=randomPassword()}}
+  function validateStep(){wizardStatus.textContent='';if(step===2&&!f.elements.name.value.trim()){wizardStatus.textContent='Укажите название клиента.';f.elements.name.focus();return false}if(step===3&&selectedAccess()==='cabinet'){const u=f.elements.username.value.trim().toLowerCase(),p=f.elements.password.value;if(!/^[a-z0-9._-]{3,40}$/.test(u)){wizardStatus.textContent='Логин: 3–40 символов, латиница и цифры.';return false}if(p.length<8){wizardStatus.textContent='Пароль должен быть минимум 8 символов.';return false}}return true}
+  function fillReview(){const t=TYPES[selectedType()]||TYPES.other;review.innerHTML=`<div><span>Тип</span><strong>${t.icon} ${t.title}</strong></div><div><span>Название</span><strong>${f.elements.name.value||'—'}</strong></div><div><span>Подзаголовок</span><strong>${f.elements.subtitle.value||'—'}</strong></div><div><span>Адрес</span><strong>${f.elements.address.value||'—'}</strong></div><div><span>Доступ</span><strong>${selectedAccess()==='cabinet'?'Личный кабинет':'Под ключ'}</strong></div>${selectedAccess()==='cabinet'?`<div><span>Логин</span><strong>${f.elements.username.value}</strong></div>`:''}`}
+  function show(n){step=n;pages.forEach(p=>p.hidden=Number(p.dataset.page)!==n);dots.forEach(d=>d.classList.toggle('active',Number(d.dataset.stepDot)<=n));back.hidden=n===1;next.hidden=n===4;create.hidden=n!==4;if(n===4)fillReview();syncType();syncAccess();wrap.scrollIntoView({behavior:'smooth',block:'start'})}
+
+  f.elements.business_type.addEventListener('change',syncType);f.elements.access_mode.forEach?.(x=>x.addEventListener('change',syncAccess));
+  f.elements.name.addEventListener('input',()=>{if(!f.elements.slug.dataset.manual)f.elements.slug.value=cleanSlug(f.elements.name.value);if(selectedAccess()==='cabinet'&&!f.elements.username.dataset.manual)f.elements.username.value=cleanSlug(f.elements.name.value).replace(/-/g,'').slice(0,32)});
+  f.elements.slug.addEventListener('input',()=>{f.elements.slug.dataset.manual='1';f.elements.slug.value=cleanSlug(f.elements.slug.value)});f.elements.username.addEventListener('input',()=>f.elements.username.dataset.manual='1');
+  wrap.querySelector('#wizardGeneratePassword').addEventListener('click',()=>f.elements.password.value=randomPassword());
+  next.addEventListener('click',()=>{if(validateStep())show(Math.min(4,step+1))});back.addEventListener('click',()=>show(Math.max(1,step-1)));dots.forEach(d=>d.addEventListener('click',()=>{const n=Number(d.dataset.stepDot);if(n<step||validateStep())show(n)}));
+  wrap.querySelector('#wizardClose').addEventListener('click',()=>{wrap.hidden=true;f.reset();step=1;show(1)});
+
+  f.addEventListener('submit',async e=>{
+    e.preventDefault();if(!validateStep())return;create.disabled=true;wizardStatus.textContent='Создаём клиента…';
+    const body={name:f.elements.name.value.trim(),slug:cleanSlug(f.elements.slug.value||f.elements.name.value),subtitle:f.elements.subtitle.value.trim(),phone:f.elements.phone.value.trim(),address:f.elements.address.value.trim(),service:selectedType()==='food'?f.elements.service.value.trim():''};
+    try{
+      const created=await api('/api/admin/restaurants',{method:'POST',body:JSON.stringify(body)});
+      localStorage.setItem(`qr-business-type:${created.slug}`,selectedType());
+      if(selectedAccess()==='cabinet')await api(`/api/admin/restaurants/${created.id}/client-access`,{method:'POST',body:JSON.stringify({enabled:true,username:f.elements.username.value.trim().toLowerCase(),password:f.elements.password.value})});
+      const accessText=selectedAccess()==='cabinet'?`\nВход: ${location.origin}/client\nЛогин: ${f.elements.username.value.trim().toLowerCase()}\nПароль: ${f.elements.password.value}`:'';
+      sessionStorage.setItem(`new-client-handoff:${created.id}`,`QR-каталог — ${created.name}\nКаталог: ${location.origin}/r/${created.slug}${accessText}`);
+      wizardStatus.textContent='Клиент создан. Открываю его рабочую область…';
+      if(typeof loadRestaurants==='function')await loadRestaurants();if(typeof resetDishEdit==='function')resetDishEdit();if(typeof openEditor==='function')await openEditor(created.id);
+      wrap.hidden=true;f.reset();show(1);if(window.editorEl)editorEl.scrollIntoView({behavior:'smooth',block:'start'});
+    }catch(err){wizardStatus.textContent=err.message||'Не удалось создать клиента.'}finally{create.disabled=false}
+  });
+
+  // The dashboard button opens this wizard; the legacy creation form no longer participates.
+  toggle.onclick=e=>{e.preventDefault();wrap.hidden=!wrap.hidden;if(!wrap.hidden)show(1)};
+  syncType();syncAccess();show(1);
+})();

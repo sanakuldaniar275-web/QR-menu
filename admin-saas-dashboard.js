@@ -41,13 +41,33 @@
     overview.querySelector('#saasManagedCount').textContent=clients.filter(r=>!r.client_enabled).length;
     clientsList.innerHTML=clients.length?clients.map(r=>{
       const type=inferType(r),typeLabel=typeLabels[type]||typeLabels.other,published=r.active!==false,duplicate=(counts.get(normName(r.name))||0)>1,canonical=baseSlug(r.slug)===r.slug;
-      return `<article class="saas-client-card${duplicate?' possible-duplicate':''}"><div class="saas-client-meta"><div class="saas-client-title"><strong>${escapeHtml(r.name)}</strong><span class="saas-type-pill">${escapeHtml(typeLabel)}</span><span class="saas-status-pill ${r.client_enabled?'cabinet':'managed'}">${r.client_enabled?'Личный кабинет':'Под ключ'}</span><span class="saas-status-pill ${published?'published':'hidden'}">${published?'Опубликован':'Скрыт'}</span>${duplicate?`<span class="saas-status-pill duplicate">${canonical?'Основной':'Возможный дубль'}</span>`:''}</div><div class="muted">${escapeHtml(r.subtitle||'Без подзаголовка')}</div><div class="saas-client-url">${location.origin}/r/${escapeHtml(r.slug)}</div>${r.client_enabled&&r.client_username?`<div class="muted">Логин клиента: ${escapeHtml(r.client_username)}</div>`:''}${duplicate&&!canonical?`<div class="saas-duplicate-note">Проверьте этот клиент. Похожее название уже существует — возможно, это тестовый дубль.</div>`:''}</div><div class="saas-client-actions"><button class="primary" type="button" data-edit="${r.id}">Управлять</button><a class="secondary" href="/r/${encodeURIComponent(r.slug)}" target="_blank">Открыть сайт</a><a class="secondary" href="/api/restaurants/${encodeURIComponent(r.slug)}/qr" target="_blank">QR-код</a></div></article>`;
+      return `<article class="saas-client-card${duplicate?' possible-duplicate':''}" data-client-id="${r.id}"><div class="saas-client-meta"><div class="saas-client-title"><strong>${escapeHtml(r.name)}</strong><span class="saas-type-pill">${escapeHtml(typeLabel)}</span><span class="saas-status-pill ${r.client_enabled?'cabinet':'managed'}">${r.client_enabled?'Личный кабинет':'Под ключ'}</span><span class="saas-status-pill ${published?'published':'hidden'}">${published?'Опубликован':'Скрыт'}</span>${duplicate?`<span class="saas-status-pill duplicate">${canonical?'Основной':'Возможный дубль'}</span>`:''}</div><div class="muted">${escapeHtml(r.subtitle||'Без подзаголовка')}</div><div class="saas-client-url">${location.origin}/r/${escapeHtml(r.slug)}</div>${r.client_enabled&&r.client_username?`<div class="muted">Логин клиента: ${escapeHtml(r.client_username)}</div>`:''}${duplicate&&!canonical?`<div class="saas-duplicate-note">Проверьте этот клиент. Похожее название уже существует — возможно, это тестовый дубль.</div>`:''}</div><div class="saas-client-actions"><button class="primary" type="button" data-edit="${r.id}">Управлять</button><a class="secondary" href="/r/${encodeURIComponent(r.slug)}" target="_blank">Открыть сайт</a><a class="secondary" href="/api/restaurants/${encodeURIComponent(r.slug)}/qr" target="_blank">QR-код</a><button class="secondary danger saas-delete-client" type="button" data-delete-client="${r.id}" data-client-name="${escapeHtml(r.name)}" data-client-slug="${escapeHtml(r.slug)}">Удалить</button></div></article>`;
     }).join(''):`<div class="saas-empty"><strong>Клиентов пока нет</strong><span>Создайте первого клиента — после этого здесь появятся управление, ссылка на сайт и QR-код.</span></div>`;
   }
 
   async function refresh(){
     try{const rows=await api('/api/admin/restaurants');renderClients(rows)}catch(err){clientsList.innerHTML=`<div class="muted">${escapeHtml(err.message)}</div>`}
   }
+
+  clientsList.addEventListener('click',async e=>{
+    const del=e.target.closest('[data-delete-client]');
+    if(!del)return;
+    e.preventDefault();e.stopPropagation();
+    const id=del.dataset.deleteClient,name=del.dataset.clientName||'этого клиента',slug=del.dataset.clientSlug||'';
+    if(!confirm(`Удалить клиента «${name}»?\n\nБудут удалены его категории, позиции, QR-ссылка и личный кабинет. Это действие нельзя отменить.`))return;
+    const typed=prompt(`Для подтверждения введите название клиента точно так же:\n${name}`);
+    if(typed!==name)return alert('Удаление отменено: название не совпало.');
+    try{
+      del.disabled=true;del.textContent='Удаляем…';
+      await api(`/api/admin/restaurants/${id}`,{method:'DELETE'});
+      if(slug)localStorage.removeItem(`qr-business-type:${slug}`);
+      if(typeof selectedRestaurantId!=='undefined'&&String(selectedRestaurantId)===String(id)){
+        const editor=document.querySelector('#editor');if(editor)editor.hidden=true;
+      }
+      if(typeof statusEl!=='undefined')statusEl.textContent=`Клиент «${name}» удалён.`;
+      await refresh();
+    }catch(err){del.disabled=false;del.textContent='Удалить';if(typeof statusEl!=='undefined')statusEl.textContent=err.message;else alert(err.message)}
+  });
 
   const oldLoad=typeof loadRestaurants==='function'?loadRestaurants:null;
   if(oldLoad){window.loadRestaurants=async function(){await oldLoad();await refresh()}}

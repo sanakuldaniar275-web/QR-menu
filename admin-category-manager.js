@@ -1,67 +1,21 @@
 (()=>{
   const form=document.querySelector('#categoryForm');
   if(!form)return;
-
-  const shell=document.createElement('div');
+  const shell=document.createElement('section');
   shell.className='category-manager';
-  shell.innerHTML='<div class="category-manager-head"><div><strong>Созданные категории</strong><span class="muted">Новая категория сразу появится здесь и в списке выбора товара.</span></div><span id="categoryManagerCount" class="category-count">0</span></div><div id="categoryManagerList" class="category-chip-list"><span class="muted">Категорий пока нет</span></div><div id="categoryManagerStatus" class="category-manager-status" role="status"></div>';
+  shell.setAttribute('aria-labelledby','categoryManagerTitle');
+  shell.innerHTML=`<div class="category-manager-head"><div><strong id="categoryManagerTitle">Созданные категории</strong><span class="muted">Категории сразу появляются здесь, в товарах и на сайте клиента.</span></div><span id="categoryManagerCount" class="category-count">0</span></div><div id="categoryManagerList" class="category-card-list"><span class="muted">Загрузка категорий…</span></div><div id="categoryManagerStatus" class="category-manager-status" role="status" aria-live="polite"></div>`;
   form.insertAdjacentElement('afterend',shell);
-
-  const list=shell.querySelector('#categoryManagerList');
-  const count=shell.querySelector('#categoryManagerCount');
-  const localStatus=shell.querySelector('#categoryManagerStatus');
-
-  function currentId(){
-    try{return typeof selectedRestaurantId!=='undefined'?selectedRestaurantId:null}catch{return null}
-  }
-
-  function render(categories=[]){
-    count.textContent=String(categories.length);
-    list.innerHTML=categories.length
-      ? categories.map(c=>`<span class="category-chip">${escapeHtml(c.name)}</span>`).join('')
-      : '<span class="muted">Категорий пока нет</span>';
-    const select=document.querySelector('#dishCategory');
-    if(select){
-      const keep=select.value;
-      select.innerHTML=categories.length?categories.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join(''):'<option value="">Сначала добавьте категорию</option>';
-      if(categories.some(c=>String(c.id)===String(keep)))select.value=keep;
-    }
-  }
-
-  async function refresh(){
-    const id=currentId();if(!id)return;
-    try{
-      const data=await api(`/api/admin/restaurants/${id}/menu`);
-      render(data.categories||[]);
-    }catch(err){localStatus.textContent=err.message||'Не удалось загрузить категории.'}
-  }
-
-  form.addEventListener('submit',async e=>{
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    const id=currentId();if(!id)return;
-    const input=form.elements.name;
-    const name=String(input?.value||'').trim();
-    if(!name){localStatus.textContent='Введите название категории.';input?.focus();return;}
-    const button=form.querySelector('button[type="submit"]');
-    const old=button?.textContent;
-    try{
-      if(button){button.disabled=true;button.textContent='Добавляем…'}
-      localStatus.textContent='Добавляем категорию…';
-      await api(`/api/admin/restaurants/${id}/categories`,{method:'POST',body:JSON.stringify({name})});
-      form.reset();
-      await refresh();
-      localStatus.textContent=`Категория «${name}» добавлена ✓`;
-      if(typeof statusEl!=='undefined')statusEl.textContent=`Категория «${name}» добавлена.`;
-    }catch(err){
-      localStatus.textContent=err.message||'Не удалось добавить категорию.';
-    }finally{
-      if(button){button.disabled=false;button.textContent=old||'+ Добавить категорию'}
-    }
-  },true);
-
-  const title=document.querySelector('#editorTitle');
-  if(title)new MutationObserver(()=>setTimeout(refresh,30)).observe(title,{childList:true,subtree:true});
-  document.querySelector('[data-workspace-tab="catalog"]')?.addEventListener('click',()=>setTimeout(refresh,30));
-  setTimeout(refresh,500);
+  const list=shell.querySelector('#categoryManagerList'),count=shell.querySelector('#categoryManagerCount'),localStatus=shell.querySelector('#categoryManagerStatus');
+  let currentCategories=[],busy=false;
+  function currentId(){try{return typeof selectedRestaurantId!=='undefined'?selectedRestaurantId:null}catch{return null}}
+  function setStatus(message,type='success'){localStatus.textContent=message||'';localStatus.dataset.type=type}
+  function syncSelect(categories){const select=document.querySelector('#dishCategory');if(!select)return;const keep=select.value;select.innerHTML=categories.length?categories.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join(''):'<option value="">Сначала добавьте категорию</option>';if(categories.some(c=>String(c.id)===String(keep)))select.value=keep;select.disabled=!categories.length}
+  function render(categories=[]){currentCategories=categories;count.textContent=String(categories.length);list.innerHTML=categories.length?categories.map((category,index)=>`<article class="category-card" data-category-id="${category.id}"><span class="category-order">${index+1}</span><strong>${escapeHtml(category.name)}</strong><button class="secondary danger category-delete" type="button" data-delete-category="${category.id}" data-category-name="${escapeHtml(category.name)}">Удалить</button></article>`).join(''):'<div class="category-empty"><strong>Категорий пока нет</strong><span class="muted">Введите название выше и нажмите «Добавить категорию».</span></div>';syncSelect(categories)}
+  async function refresh(id=currentId()){if(!id){render([]);return null}try{const data=await api(`/api/admin/restaurants/${id}/menu`);render(data.categories||[]);return data}catch(err){setStatus(err.message||'Не удалось загрузить категории.','error');throw err}}
+  form.addEventListener('submit',async event=>{event.preventDefault();event.stopImmediatePropagation();if(busy)return;const id=currentId(),input=form.elements.name,name=String(input?.value||'').trim();if(!id){setStatus('Сначала выберите клиента.','error');return}if(!name){setStatus('Введите название категории.','error');input?.focus();return}const button=form.querySelector('button[type="submit"]'),old=button?.textContent;busy=true;try{if(button){button.disabled=true;button.textContent='Добавляем…'}setStatus('Сохраняем категорию…','loading');const created=await api(`/api/admin/restaurants/${id}/categories`,{method:'POST',body:JSON.stringify({name})});form.reset();render([...currentCategories,created]);await refresh(id);setStatus(`Категория «${name}» добавлена и опубликована ✓`);if(typeof statusEl!=='undefined')statusEl.textContent=`Категория «${name}» добавлена.`}catch(err){setStatus(err.message||'Не удалось добавить категорию.','error')}finally{busy=false;if(button){button.disabled=false;button.textContent=old||'+ Добавить категорию'}}},true);
+  list.addEventListener('click',async event=>{const button=event.target.closest('[data-delete-category]');if(!button||busy)return;const id=currentId(),categoryId=button.dataset.deleteCategory,name=button.dataset.categoryName||'категорию';if(!id||!confirm(`Удалить категорию «${name}»? Товары останутся, но будут без категории.`))return;busy=true;try{button.disabled=true;setStatus(`Удаляем категорию «${name}»…`,'loading');await api(`/api/admin/restaurants/${id}/categories/${categoryId}`,{method:'DELETE'});await refresh(id);setStatus(`Категория «${name}» удалена.`)}catch(err){setStatus(err.message||'Не удалось удалить категорию.','error');button.disabled=false}finally{busy=false}});
+  if(typeof openEditor==='function'){const originalOpenEditor=openEditor;openEditor=async function(id){const result=await originalOpenEditor(id);await refresh(id);return result}}
+  document.querySelector('[data-workspace-tab="catalog"]')?.addEventListener('click',()=>refresh().catch(()=>{}));
+  setTimeout(()=>refresh().catch(()=>{}),300);
 })();

@@ -5,7 +5,8 @@
  function apply(){
   const menu=document.querySelector('#menuManage'),form=document.querySelector('#dishForm');if(!menu||!form)return;
   const c=TYPES[infer()]||TYPES.products;
-  const heads=[...menu.querySelectorAll(':scope > h3')];if(heads[0])text(heads[0],c.category);if(heads[1]&&!window.editingDishId)text(heads[1],c.add);if(heads[2])text(heads[2],c.title);
+  const editing=typeof editingDishId!=='undefined'&&Boolean(editingDishId);
+  const heads=[...menu.querySelectorAll(':scope > h3')];if(heads[0])text(heads[0],c.category);if(heads[1]&&!editing)text(heads[1],c.add);if(heads[2])text(heads[2],c.title);
   if(form.elements.name)form.elements.name.placeholder=c.name;if(form.elements.description)form.elements.description.placeholder=c.desc;
   const photoLabel=[...form.querySelectorAll('label')].find(l=>l.querySelector('#dishPhoto'));if(photoLabel){const s=photoLabel.querySelector('.muted');text(s,c.photo)}
   const emoji=form.elements.emoji;if(emoji){emoji.closest('label')?.remove();if(emoji.isConnected)emoji.remove()}

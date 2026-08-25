@@ -47,6 +47,11 @@
   if(access&&accessBox)accessPanel.append(access,accessBox);
 
   content.replaceChildren(overview,catalog,brandPanel,publish,accessPanel);
+  const editorHead=editor.querySelector('.admin-head');
+  if(editorHead&&!editorHead.querySelector('#workspaceBackToClients')){
+    const back=document.createElement('button');back.id='workspaceBackToClients';back.className='workspace-back';back.type='button';back.innerHTML='<span aria-hidden="true">←</span><span>Все клиенты</span>';editorHead.insertBefore(back,editorHead.firstChild);
+    back.addEventListener('click',()=>leaveClientWorkspace());
+  }
   const panels=[...content.querySelectorAll('[data-workspace-panel]')];
   const buttons=[...nav.querySelectorAll('[data-workspace-tab]')];
   function show(name){panels.forEach(p=>p.hidden=p.dataset.workspacePanel!==name);buttons.forEach(b=>b.classList.toggle('active',b.dataset.workspaceTab===name))}
@@ -70,6 +75,33 @@
     const cards=document.querySelector('#workspaceOverviewCards');if(cards)cards.innerHTML=`<div><span class="muted">Статус</span><strong>${published?'Опубликован ✓':'Скрыт'}</strong></div><div><span class="muted">Сайт</span><strong>/r/${r.slug}</strong></div><div><span class="muted">Следующий шаг</span><strong>${published?'Проверьте каталог и передайте ссылку / QR':'Опубликуйте сайт, когда он будет готов'}</strong></div>`;
   }
   document.querySelector('#workspaceCopySite')?.addEventListener('click',async()=>{const text=document.querySelector('#workspacePublicUrl')?.textContent;if(!text||text==='—')return;try{await navigator.clipboard.writeText(text);const btn=document.querySelector('#workspaceCopySite');if(btn){const old=btn.textContent;btn.textContent='Скопировано ✓';setTimeout(()=>btn.textContent=old,1600)}if(typeof statusEl!=='undefined')statusEl.textContent='Ссылка сайта скопирована.'}catch{prompt('Скопируйте ссылку:',text)}});
+  function enterClientWorkspace(){
+    document.body.classList.add('client-workspace-open');
+    document.querySelector('#saasDashboardOverview')?.setAttribute('hidden','');
+    document.querySelector('.demo-panel')?.setAttribute('hidden','');
+    document.querySelector('#dashboardCreateClient')?.setAttribute('hidden','');
+    document.querySelector('#clients')?.setAttribute('hidden','');
+    editor.hidden=false;
+    show('overview');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function leaveClientWorkspace(){
+    document.body.classList.remove('client-workspace-open');
+    editor.hidden=true;
+    if(location.hash!=='#clients')location.hash='clients';
+    else document.querySelector('#clients')?.removeAttribute('hidden');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  if(typeof openEditor==='function'){
+    const workspaceOpenEditor=openEditor;
+    openEditor=async function(id){const result=await workspaceOpenEditor(id);enterClientWorkspace();return result};
+  }
+  document.querySelectorAll('.admin-sidebar a').forEach(link=>link.addEventListener('click',()=>document.body.classList.remove('client-workspace-open')));
+  const globalStatus=document.querySelector('#status');
+  if(globalStatus){
+    globalStatus.classList.add('admin-toast');
+    new MutationObserver(()=>{const message=globalStatus.textContent.trim();globalStatus.classList.toggle('visible',Boolean(message));clearTimeout(globalStatus.hideTimer);if(message)globalStatus.hideTimer=setTimeout(()=>globalStatus.classList.remove('visible'),3600)}).observe(globalStatus,{childList:true,subtree:true,characterData:true});
+  }
   const observer=new MutationObserver(sync);observer.observe(document.querySelector('#editorTitle'),{childList:true,subtree:true});
   sync();
 })();

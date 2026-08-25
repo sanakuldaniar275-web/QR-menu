@@ -8,6 +8,7 @@
 
   const typeLabels={food:'Ресторан / кафе',products:'Магазин / товары',flowers:'Цветочный магазин',auto:'Автосалон',services:'Услуги',other:'Другое'};
   const inferType=r=>{
+    if(r.business_type&&typeLabels[r.business_type])return r.business_type;
     const saved=localStorage.getItem(`qr-business-type:${r.slug}`);if(saved)return saved;
     const s=`${r.name||''} ${r.subtitle||''}`.toLowerCase();
     if(/кафе|бар|restaurant|cafe|lounge|кухн|еда|ресторан/.test(s))return'food';
@@ -31,8 +32,8 @@
     overview.querySelector('#saasCabinetCount').textContent=clients.filter(r=>r.client_enabled).length;
     overview.querySelector('#saasManagedCount').textContent=clients.filter(r=>!r.client_enabled).length;
     clientsList.innerHTML=clients.length?clients.map(r=>{
-      const type=inferType(r),typeLabel=typeLabels[type]||typeLabels.other;
-      return `<article class="saas-client-card"><div class="saas-client-meta"><div class="saas-client-title"><strong>${escapeHtml(r.name)}</strong><span class="saas-type-pill">${escapeHtml(typeLabel)}</span><span class="saas-status-pill ${r.client_enabled?'cabinet':'managed'}">${r.client_enabled?'Личный кабинет':'Под ключ'}</span></div><div class="muted">${escapeHtml(r.subtitle||'Без подзаголовка')}</div><div class="saas-client-url">${location.origin}/r/${escapeHtml(r.slug)}</div>${r.client_enabled&&r.client_username?`<div class="muted">Логин клиента: ${escapeHtml(r.client_username)}</div>`:''}</div><div class="saas-client-actions"><button class="primary" type="button" data-edit="${r.id}">Управлять</button><a class="secondary" href="/r/${encodeURIComponent(r.slug)}" target="_blank">Открыть сайт</a><a class="secondary" href="/api/restaurants/${encodeURIComponent(r.slug)}/qr" target="_blank">QR-код</a></div></article>`;
+      const type=inferType(r),typeLabel=typeLabels[type]||typeLabels.other,published=r.active!==false;
+      return `<article class="saas-client-card"><div class="saas-client-meta"><div class="saas-client-title"><strong>${escapeHtml(r.name)}</strong><span class="saas-type-pill">${escapeHtml(typeLabel)}</span><span class="saas-status-pill ${r.client_enabled?'cabinet':'managed'}">${r.client_enabled?'Личный кабинет':'Под ключ'}</span><span class="saas-status-pill ${published?'published':'hidden'}">${published?'Опубликован':'Скрыт'}</span></div><div class="muted">${escapeHtml(r.subtitle||'Без подзаголовка')}</div><div class="saas-client-url">${location.origin}/r/${escapeHtml(r.slug)}</div>${r.client_enabled&&r.client_username?`<div class="muted">Логин клиента: ${escapeHtml(r.client_username)}</div>`:''}</div><div class="saas-client-actions"><button class="primary" type="button" data-edit="${r.id}">Управлять</button><a class="secondary" href="/r/${encodeURIComponent(r.slug)}" target="_blank">Открыть сайт</a><a class="secondary" href="/api/restaurants/${encodeURIComponent(r.slug)}/qr" target="_blank">QR-код</a></div></article>`;
     }).join(''):`<div class="saas-empty"><strong>Клиентов пока нет</strong><span>Создайте первого клиента — после этого здесь появятся управление, ссылка на сайт и QR-код.</span></div>`;
   }
 

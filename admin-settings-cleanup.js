@@ -12,6 +12,7 @@
    return wrap;
  }
  async function copy(text,btn){if(!text)return;try{await navigator.clipboard.writeText(text);if(btn){const old=btn.textContent;btn.textContent='Скопировано ✓';setTimeout(()=>btn.textContent=old,1500)}}catch{prompt('Скопируйте:',text)}}
+ function makePassword(){const lower='abcdefghijkmnpqrstuvwxyz',upper='ABCDEFGHJKLMNPQRSTUVWXYZ',digits='23456789',all=lower+upper+digits;let out=upper[Math.floor(Math.random()*upper.length)]+lower[Math.floor(Math.random()*lower.length)]+digits[Math.floor(Math.random()*digits.length)];while(out.length<12)out+=all[Math.floor(Math.random()*all.length)];return out.split('').sort(()=>Math.random()-.5).join('')}
  function syncAccessSummary(){
    const form=document.querySelector('#clientAccessForm'),summary=document.querySelector('#accessHandoff');if(!form||!summary)return;
    const cabinet=form.elements.access_mode?.value==='cabinet',username=form.elements.username?.value?.trim()||'',url=`${location.origin}/client`;
@@ -50,8 +51,16 @@
    const sync=()=>{if(creds)creds.hidden=!cabinet?.checked;syncAccessSummary()};
    cabinet?.addEventListener('change',sync);managed?.addEventListener('change',sync);form.elements.username?.addEventListener('input',sync);sync();
   }
+  if(form&&form.elements.password&&!form.querySelector('[data-generate-password]')){
+    const passwordInput=form.elements.password,wrap=passwordInput.closest('label');
+    const actions=document.createElement('div');actions.className='access-password-actions';actions.innerHTML='<button class="secondary" type="button" data-generate-password>Сгенерировать пароль</button><button class="secondary" type="button" data-copy-password disabled>Копировать пароль</button>';
+    wrap?.append(actions);
+    actions.querySelector('[data-generate-password]').addEventListener('click',()=>{passwordInput.value=makePassword();passwordInput.type='text';actions.querySelector('[data-copy-password]').disabled=false;passwordInput.dispatchEvent(new Event('input',{bubbles:true}))});
+    actions.querySelector('[data-copy-password]').addEventListener('click',e=>copy(passwordInput.value,e.currentTarget));
+    passwordInput.addEventListener('input',()=>{actions.querySelector('[data-copy-password]').disabled=!passwordInput.value});
+  }
   if(access&&!document.querySelector('#accessHandoff')){
-   const card=document.createElement('div');card.id='accessHandoff';card.className='access-handoff';card.hidden=true;card.innerHTML=`<div><span class="muted">ДАННЫЕ ДЛЯ ПЕРЕДАЧИ КЛИЕНТУ</span><strong>Личный кабинет</strong></div><div class="access-handoff-row"><span class="muted">Ссылка для входа</span><code data-access-url></code><button class="secondary" type="button" data-copy-url>Копировать</button></div><div class="access-handoff-row"><span class="muted">Логин</span><code data-access-login></code><button class="secondary" type="button" data-copy-login>Копировать</button></div><div class="access-handoff-note muted">Пароль после сохранения не показывается. Если клиент его забудет, задайте новый пароль выше.</div><a class="secondary workspace-preview-action" href="/client" target="_blank">Открыть кабинет клиента</a>`;
+   const card=document.createElement('div');card.id='accessHandoff';card.className='access-handoff';card.hidden=true;card.innerHTML=`<div><span class="muted">ДАННЫЕ ДЛЯ ПЕРЕДАЧИ КЛИЕНТУ</span><strong>Личный кабинет</strong></div><div class="access-handoff-row"><span class="muted">Ссылка для входа</span><code data-access-url></code><button class="secondary" type="button" data-copy-url>Копировать</button></div><div class="access-handoff-row"><span class="muted">Логин</span><code data-access-login></code><button class="secondary" type="button" data-copy-login>Копировать</button></div><div class="access-handoff-note muted">Пароль после сохранения не показывается. Перед сохранением скопируйте его кнопкой выше. Если клиент забудет пароль — просто задайте новый.</div><a class="secondary workspace-preview-action" href="/client" target="_blank">Открыть кабинет клиента</a>`;
    const danger=document.querySelector('#clientDangerZone');access.insertBefore(card,danger||null);
    card.querySelector('[data-copy-url]').addEventListener('click',e=>copy(card.querySelector('[data-access-url]').textContent,e.currentTarget));
    card.querySelector('[data-copy-login]').addEventListener('click',e=>copy(card.querySelector('[data-access-login]').textContent,e.currentTarget));

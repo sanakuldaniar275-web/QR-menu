@@ -10,7 +10,8 @@
    const h=document.createElement('div');h.className='workspace-help-card';h.innerHTML='<strong>Доступ клиента</strong><span><b>Под ключ</b> — управляете только вы. <b>Личный кабинет</b> — клиент получает собственный логин и пароль.</span>';
    access.prepend(h);
   }
-  const form=document.querySelector('#clientAccessForm');if(form){
+  const form=document.querySelector('#clientAccessForm');if(form&&!form.dataset.workspaceBound){
+   form.dataset.workspaceBound='1';
    const cabinet=form.querySelector('input[value="cabinet"]'),managed=form.querySelector('input[value="managed"]'),creds=document.querySelector('#clientCredentials');
    const sync=()=>{if(creds)creds.hidden=!cabinet?.checked};cabinet?.addEventListener('change',sync);managed?.addEventListener('change',sync);sync();
   }

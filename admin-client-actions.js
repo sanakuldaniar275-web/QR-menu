@@ -1,9 +1,11 @@
 (()=>{
   function selected(){return typeof selectedRestaurant!=='undefined'?selectedRestaurant:null}
   function ensure(){
-    const overview=document.querySelector('[data-workspace-panel="overview"]');
-    if(!overview||overview.querySelector('#clientDangerZone'))return;
-    const box=document.createElement('div');box.id='clientDangerZone';box.className='client-danger-zone';box.innerHTML=`<div><strong>Управление клиентом</strong><span class="muted">Скрытие временно отключает публичный сайт. Удаление удаляет клиента, его каталог и личный кабинет.</span></div><div class="client-danger-actions"><button id="clientToggleActive" class="secondary" type="button">Скрыть сайт</button><button id="clientDelete" class="secondary danger" type="button">Удалить клиента</button></div>`;overview.append(box);
+    const target=document.querySelector('[data-workspace-panel="access"]');
+    if(!target)return;
+    let box=document.querySelector('#clientDangerZone');
+    if(box){if(box.parentElement!==target)target.append(box);sync();return}
+    box=document.createElement('div');box.id='clientDangerZone';box.className='client-danger-zone';box.innerHTML=`<div><strong>Опасные действия</strong><span class="muted">Скрытие временно отключает публичный сайт. Удаление полностью удаляет клиента, его каталог и личный кабинет.</span></div><div class="client-danger-actions"><button id="clientToggleActive" class="secondary" type="button">Скрыть сайт</button><button id="clientDelete" class="secondary danger" type="button">Удалить клиента</button></div>`;target.append(box);
     box.querySelector('#clientToggleActive').addEventListener('click',async()=>{
       const r=selected();if(!r||r.slug==='demo')return;
       const next=!r.active;

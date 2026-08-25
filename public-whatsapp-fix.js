@@ -1,24 +1,26 @@
 (()=>{
-  const link=document.querySelector('#whatsappLink');
-  if(!link)return;
-
-  function normalizeKazakhstanWhatsapp(){
-    const href=link.getAttribute('href')||'';
-    if(!href.includes('wa.me/'))return;
-    try{
-      const url=new URL(href,location.origin);
-      let digits=url.pathname.replace(/\D/g,'');
-      // Kazakhstan numbers are often entered locally as 8XXXXXXXXXX.
-      // wa.me requires the international country code, so 8 -> 7.
-      if(/^8\d{10}$/.test(digits)) digits='7'+digits.slice(1);
-      if(!/^\d{10,15}$/.test(digits))return;
-      const next=`https://wa.me/${digits}${url.search||''}`;
-      if(link.href!==next)link.href=next;
-    }catch{}
+  function slug(){return location.pathname.split('/').filter(Boolean)[1]||'demo'}
+  function normalizeKz(value){
+    let d=String(value||'').replace(/\D/g,'');
+    if(d.length===10)d='7'+d;
+    if(d.length===11&&d.startsWith('8'))d='7'+d.slice(1);
+    return /^7\d{10}$/.test(d)?d:'';
   }
-
-  normalizeKazakhstanWhatsapp();
-  new MutationObserver(normalizeKazakhstanWhatsapp).observe(link,{attributes:true,attributeFilter:['href']});
-  setTimeout(normalizeKazakhstanWhatsapp,300);
-  setTimeout(normalizeKazakhstanWhatsapp,1200);
+  async function apply(){
+    const link=document.querySelector('#whatsappLink');
+    if(!link)return;
+    try{
+      const r=await fetch(`/api/menu/${encodeURIComponent(slug())}?wa=${Date.now()}`,{cache:'no-store'});
+      if(!r.ok)throw new Error('menu fetch failed');
+      const data=await r.json();
+      const phone=normalizeKz(data?.restaurant?.phone);
+      if(!phone){link.hidden=true;link.removeAttribute('href');return;}
+      const name=data?.restaurant?.name||document.querySelector('#restaurantName')?.textContent||'QR';
+      link.href=`https://wa.me/${phone}?text=${encodeURIComponent('Здравствуйте! Пишу из QR-каталога '+name)}`;
+      link.hidden=false;
+      link.dataset.boundPhone=phone;
+    }catch(_e){}
+  }
+  document.addEventListener('DOMContentLoaded',()=>{apply();setTimeout(apply,700)});
+  window.addEventListener('pageshow',apply);
 })();

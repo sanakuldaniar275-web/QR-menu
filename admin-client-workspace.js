@@ -47,11 +47,11 @@
     if(!window.selectedRestaurant && typeof selectedRestaurant==='undefined')return;
     const r=typeof selectedRestaurant!=='undefined'?selectedRestaurant:window.selectedRestaurant;
     if(!r)return;
-    const url=`${location.origin}/r/${r.slug}`;
+    const url=`${location.origin}/r/${r.slug}`,published=r.active!==false;
     const urlEl=document.querySelector('#workspacePublicUrl');if(urlEl)urlEl.textContent=url;
-    const open=document.querySelector('#workspaceOpenSite');if(open)open.href=`/r/${encodeURIComponent(r.slug)}`;
+    const open=document.querySelector('#workspaceOpenSite');if(open){open.href=`/r/${encodeURIComponent(r.slug)}`;open.textContent=published?'Открыть сайт':'Сайт скрыт'}
     const qr=document.querySelector('#workspaceQr');if(qr)qr.href=`/api/restaurants/${encodeURIComponent(r.slug)}/qr`;
-    const cards=document.querySelector('#workspaceOverviewCards');if(cards)cards.innerHTML=`<div><span class="muted">Статус</span><strong>Опубликован ✓</strong></div><div><span class="muted">Сайт</span><strong>/r/${r.slug}</strong></div><div><span class="muted">Следующий шаг</span><strong>Заполните каталог и проверьте сайт</strong></div>`;
+    const cards=document.querySelector('#workspaceOverviewCards');if(cards)cards.innerHTML=`<div><span class="muted">Статус</span><strong>${published?'Опубликован ✓':'Скрыт'}</strong></div><div><span class="muted">Сайт</span><strong>/r/${r.slug}</strong></div><div><span class="muted">Следующий шаг</span><strong>${published?'Проверьте каталог и передайте ссылку / QR':'Опубликуйте сайт, когда он будет готов'}</strong></div>`;
   }
   document.querySelector('#workspaceCopySite')?.addEventListener('click',async()=>{const text=document.querySelector('#workspacePublicUrl')?.textContent;if(!text||text==='—')return;try{await navigator.clipboard.writeText(text);if(typeof statusEl!=='undefined')statusEl.textContent='Ссылка сайта скопирована.'}catch{prompt('Скопируйте ссылку:',text)}});
   const observer=new MutationObserver(sync);observer.observe(document.querySelector('#editorTitle'),{childList:true,subtree:true});

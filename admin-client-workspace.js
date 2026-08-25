@@ -41,7 +41,7 @@
   if(branding&&brandingForm)brandPanel.append(branding,brandingForm);
 
   const publish=document.createElement('section');publish.dataset.workspacePanel='publish';publish.className='workspace-panel';
-  publish.innerHTML=`<div class="workspace-section-head"><div><span class="muted">ПУБЛИКАЦИЯ</span><h3>QR и ссылка</h3><p class="muted">Здесь всегда находится готовый сайт клиента.</p></div></div><div class="publish-card"><div><span class="muted">Публичная ссылка</span><strong id="workspacePublicUrl">—</strong></div><div class="publish-actions"><a id="workspaceOpenSite" class="primary" target="_blank">Открыть сайт</a><button id="workspaceCopySite" class="secondary" type="button">Копировать ссылку</button><a id="workspaceQr" class="secondary" target="_blank">QR-код</a></div></div>`;
+  publish.innerHTML=`<div class="workspace-section-head"><div><span class="muted">ПУБЛИКАЦИЯ</span><h3>QR и ссылка</h3><p class="muted">Всё готовое для передачи клиенту: ссылка на сайт и QR-код.</p></div></div><div class="publish-layout"><div class="publish-card publish-link-card"><div><span class="muted">Публичная ссылка</span><strong id="workspacePublicUrl">—</strong><p class="muted">Эту ссылку можно отправить клиенту или разместить в соцсетях.</p></div><div class="publish-actions"><a id="workspaceOpenSite" class="primary" target="_blank">Открыть сайт</a><button id="workspaceCopySite" class="secondary" type="button">Копировать ссылку</button></div></div><div class="publish-qr-card"><div><span class="muted">QR-код клиента</span><strong>Готов к использованию</strong><p class="muted">Проверьте QR телефоном перед печатью.</p></div><div class="publish-qr-preview"><img id="workspaceQrImage" alt="QR-код клиента"></div><div class="publish-actions"><a id="workspaceQr" class="secondary" target="_blank">Открыть QR</a><a id="workspaceQrDownload" class="primary" download>Скачать QR</a></div></div></div>`;
 
   const accessPanel=document.createElement('section');accessPanel.dataset.workspacePanel='access';accessPanel.className='workspace-panel';
   if(access&&accessBox)accessPanel.append(access,accessBox);
@@ -58,16 +58,18 @@
     if(!window.selectedRestaurant && typeof selectedRestaurant==='undefined')return;
     const r=typeof selectedRestaurant!=='undefined'?selectedRestaurant:window.selectedRestaurant;
     if(!r)return;
-    const url=`${location.origin}/r/${r.slug}`,published=r.active!==false,type=inferType(r);
+    const url=`${location.origin}/r/${r.slug}`,published=r.active!==false,type=inferType(r),qrUrl=`/api/restaurants/${encodeURIComponent(r.slug)}/qr`;
     document.body.dataset.businessType=type;
     const serviceWrap=document.querySelector('#restaurantEditForm [name="service"]')?.closest('.workspace-field');if(serviceWrap)serviceWrap.hidden=type!=='food';
     const urlEl=document.querySelector('#workspacePublicUrl');if(urlEl)urlEl.textContent=url;
     const open=document.querySelector('#workspaceOpenSite');if(open){open.href=`/r/${encodeURIComponent(r.slug)}`;open.textContent=published?'Открыть сайт':'Сайт скрыт'}
     const preview=document.querySelector('#workspaceCatalogPreview');if(preview)preview.href=`/r/${encodeURIComponent(r.slug)}`;
-    const qr=document.querySelector('#workspaceQr');if(qr)qr.href=`/api/restaurants/${encodeURIComponent(r.slug)}/qr`;
+    const qr=document.querySelector('#workspaceQr');if(qr)qr.href=qrUrl;
+    const qrDownload=document.querySelector('#workspaceQrDownload');if(qrDownload){qrDownload.href=qrUrl;qrDownload.download=`qr-${r.slug}.png`}
+    const qrImage=document.querySelector('#workspaceQrImage');if(qrImage){qrImage.src=`${qrUrl}?preview=1`;qrImage.alt=`QR-код ${r.name||r.slug}`}
     const cards=document.querySelector('#workspaceOverviewCards');if(cards)cards.innerHTML=`<div><span class="muted">Статус</span><strong>${published?'Опубликован ✓':'Скрыт'}</strong></div><div><span class="muted">Сайт</span><strong>/r/${r.slug}</strong></div><div><span class="muted">Следующий шаг</span><strong>${published?'Проверьте каталог и передайте ссылку / QR':'Опубликуйте сайт, когда он будет готов'}</strong></div>`;
   }
-  document.querySelector('#workspaceCopySite')?.addEventListener('click',async()=>{const text=document.querySelector('#workspacePublicUrl')?.textContent;if(!text||text==='—')return;try{await navigator.clipboard.writeText(text);if(typeof statusEl!=='undefined')statusEl.textContent='Ссылка сайта скопирована.'}catch{prompt('Скопируйте ссылку:',text)}});
+  document.querySelector('#workspaceCopySite')?.addEventListener('click',async()=>{const text=document.querySelector('#workspacePublicUrl')?.textContent;if(!text||text==='—')return;try{await navigator.clipboard.writeText(text);const btn=document.querySelector('#workspaceCopySite');if(btn){const old=btn.textContent;btn.textContent='Скопировано ✓';setTimeout(()=>btn.textContent=old,1600)}if(typeof statusEl!=='undefined')statusEl.textContent='Ссылка сайта скопирована.'}catch{prompt('Скопируйте ссылку:',text)}});
   const observer=new MutationObserver(sync);observer.observe(document.querySelector('#editorTitle'),{childList:true,subtree:true});
   sync();
 })();

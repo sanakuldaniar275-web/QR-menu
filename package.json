@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node green-bar-seed.js && node green-bar-client-account.js && node server.js",
-    "check": "node --check green-bar-seed.js && node --check green-bar-client-account.js && node --check server.js && node --check app.js && node --check admin.js && node --check client.js"
+    "check": "node --check green-bar-seed.js && node --check green-bar-client-account.js && node --check server.js && node --check app.js && node --check admin.js && node --check client.js && node --check admin-premium.js && node admin-smoke-check.js"
   },
   "dependencies": {
     "express": "^4.21.2",

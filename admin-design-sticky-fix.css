@@ -1,0 +1,2 @@
+@media(min-width:901px){.design-main{grid-template-columns:minmax(0,1fr) 420px!important;align-items:start!important}.design-preview{position:sticky!important;top:170px!important;max-height:calc(100vh - 190px)!important;overflow:auto!important;z-index:6!important}.preview-frame{width:370px!important;max-width:100%!important}.preview-frame[data-device-mode=desktop]{width:100%!important}}
+@media(max-width:900px){.design-preview{position:static!important;max-height:none!important}}

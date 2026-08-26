@@ -1,0 +1,23 @@
+const fs=require('fs');
+const assert=require('assert');
+const read=file=>fs.readFileSync(file,'utf8');
+const server=read('server.js');
+const html=read('admin.html');
+const workspace=read('admin-client-workspace.js');
+const categories=read('admin-category-manager.js');
+const premium=read('admin-premium.css');
+const premiumJs=read('admin-premium.js');
+
+assert(server.includes("database:'connected'")||server.includes("database='connected'"),'health must report database state');
+assert(server.includes("/api/admin/restaurants/:id/categories"),'category create API is missing');
+assert(server.includes("/categories/:categoryId"),'category delete API is missing');
+assert(server.includes('admin-premium.css')&&server.includes('admin-premium.js'),'premium assets are not injected');
+assert(server.includes("Cache-Control','no-store"),'admin cache protection is missing');
+assert(html.indexOf('admin-client-workspace.js')<html.indexOf('admin-category-manager.js'),'category manager must load after workspace');
+assert(workspace.includes('enterClientWorkspace')&&workspace.includes('leaveClientWorkspace'),'focused client workspace flow is missing');
+assert(workspace.includes('workspaceBackToClients'),'back-to-clients control is missing');
+assert(categories.includes('добавлена и опубликована'),'category confirmation is missing');
+assert(categories.includes('await refresh(id)'),'category database refresh is missing');
+assert(premium.includes('@media(max-width:820px)')&&premium.includes('@media(max-width:520px)'),'responsive admin rules are missing');
+assert(premiumJs.includes('data-workspace-tab'),'premium workspace navigation is missing');
+console.log('Admin smoke check passed');
